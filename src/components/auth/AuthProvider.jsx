@@ -46,11 +46,11 @@ export const AuthProvider = ({ children }) => {
       try {
         console.log("🔐 Inicializando autenticação...");
 
-        // Timeout de 10 segundos para evitar loading infinito
+        // Timeout de 5 segundos para evitar loading infinito
         const timeoutPromise = new Promise((_, reject) => {
           timeoutId = setTimeout(
             () => reject(new Error("Timeout ao conectar com Supabase")),
-            10000,
+            5000,
           );
         });
 
@@ -74,28 +74,38 @@ export const AuthProvider = ({ children }) => {
 
             // Buscar perfil (não bloqueia o loading se falhar)
             fetchProfile(currentSession.user.id).catch((err) => {
-              console.warn("⚠️ Erro ao buscar perfil:", err);
+              console.warn("⚠️ Erro ao buscar perfil (não crítico):", err);
             });
           } else {
-            console.log("ℹ️ Nenhuma sessão ativa");
+            console.log("ℹ️ Nenhuma sessão ativa - mostrando tela de login");
           }
+
+          console.log("✅ Loading concluído");
           setLoading(false);
         }
       } catch (error) {
         console.error("❌ Erro ao inicializar autenticação:", error);
         if (mounted) {
-          // Mesmo com erro, parar o loading para permitir acesso
+          // SEMPRE parar o loading, mesmo com erro
+          console.log("🛑 Parando loading devido ao erro");
           setLoading(false);
           setUser(null);
           setProfile(null);
+          setSession(null);
 
-          // Se for timeout, mostrar alerta
-          if (error.message.includes("Timeout")) {
+          // Se for timeout, mostrar mensagem específica
+          if (error.message && error.message.includes("Timeout")) {
             console.error(
-              "⏱️ Timeout: Não foi possível conectar ao Supabase. Verifique sua conexão.",
+              "⏱️ TIMEOUT: Supabase não respondeu em 5 segundos. Mostrando tela de login.",
             );
           }
         }
+      } finally {
+        // Garantir que loading sempre para
+        if (mounted && timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        console.log("🏁 Inicialização finalizada");
       }
     };
 
@@ -105,20 +115,27 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log("Auth state changed:", event);
+      console.log("🔄 Auth state changed:", event);
 
       if (mounted) {
         setSession(currentSession);
 
         if (currentSession) {
+          console.log("✅ Sessão ativa detectada");
           setUser(currentSession.user);
-          await fetchProfile(currentSession.user.id);
+          fetchProfile(currentSession.user.id).catch((err) => {
+            console.warn("⚠️ Erro ao buscar perfil após mudança de auth:", err);
+          });
         } else {
+          console.log("🚪 Sessão encerrada");
           setUser(null);
           setProfile(null);
         }
 
-        setLoading(false);
+        // Sempre garantir que loading para
+        if (get().loading) {
+          setLoading(false);
+        }
       }
     });
 
@@ -133,6 +150,7 @@ export const AuthProvider = ({ children }) => {
   // Função de login
   const login = async (email, password) => {
     try {
+      console.log("🔐 Tentando fazer login...");
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -141,6 +159,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       if (data.user) {
+        console.log("✅ Login bem-sucedido");
         setUser(data.user);
         setSession(data.session);
         await fetchProfile(data.user.id);
@@ -155,6 +174,7 @@ export const AuthProvider = ({ children }) => {
   // Função de registro
   const register = async (email, password, nomeCompleto) => {
     try {
+      console.log("📝 Tentando registrar novo usuário...");
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -168,6 +188,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       if (data.user) {
+        console.log("✅ Usuário registrado, criando perfil...");
         // Criar perfil
         const { error: profileError } = await supabase.from("profiles").insert([
           {
@@ -179,7 +200,9 @@ export const AuthProvider = ({ children }) => {
         ]);
 
         if (profileError) {
-          console.error("Erro ao criar perfil:", profileError);
+          console.error("❌ Erro ao criar perfil:", profileError);
+        } else {
+          console.log("✅ Perfil criado com sucesso");
         }
 
         return { success: true, user: data.user };
@@ -193,10 +216,12 @@ export const AuthProvider = ({ children }) => {
   // Função de logout
   const logout = async () => {
     try {
+      console.log("🚪 Fazendo logout...");
       await signOut();
       setUser(null);
       setProfile(null);
       setSession(null);
+      console.log("✅ Logout bem-sucedido");
       return { success: true };
     } catch (error) {
       console.error("Erro no logout:", error);

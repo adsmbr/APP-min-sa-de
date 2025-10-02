@@ -78,9 +78,16 @@ function AppContent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50">
-        <div className="text-center">
+        <div className="text-center max-w-md p-6">
           <div className="spinner w-16 h-16 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Carregando sistema...</p>
+          <p className="text-gray-600 text-lg mb-4">Carregando sistema...</p>
+          <p className="text-sm text-gray-500">
+            Se ficar muito tempo aqui, pressione F5 ou abra o Console (F12) para
+            ver detalhes.
+          </p>
+          <p className="text-xs text-gray-400 mt-2">
+            Aguarde até 5 segundos...
+          </p>
         </div>
       </div>
     );
