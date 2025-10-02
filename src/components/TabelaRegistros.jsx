@@ -46,34 +46,6 @@ const TabelaRegistros = ({ onEdit }) => {
   const { permissions } = usePermissions();
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [registroParaExcluir, setRegistroParaExcluir] = useState(null);
-</text>
-
-<old_text line=369>
-                      <td>
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleEditar(registro)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDuplicar(registro.id)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Duplicar"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => confirmarExclusao(registro)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
 
   // Carregar registros do Supabase ao montar o componente
   useEffect(() => {
