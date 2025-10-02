@@ -44,7 +44,6 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     data: new Date().toISOString().split("T")[0],
     tutor: "",
     telefone: "",
-    coordenadas: { lat: null, lng: null },
   };
 
   const [formData, setFormData] = useState(estadoInicial);
@@ -53,7 +52,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
   const [salvando, setSalvando] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState("");
   const [avisosDuplicata, setAvisosDuplicata] = useState("");
-  const [capturandoLocalizacao, setCapturandoLocalizacao] = useState(false);
+
   const [sugestoesLocalidade, setSugestoesLocalidade] = useState([]);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
 
@@ -119,8 +118,8 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
       if (valorProcessado < 0) valorProcessado = 0;
     }
 
-    // Sanitizar strings
-    if (typeof valorProcessado === "string") {
+    // Sanitizar strings (exceto endereço que precisa de espaços)
+    if (typeof valorProcessado === "string" && name !== "endereco") {
       valorProcessado = sanitizarString(valorProcessado);
     }
 
@@ -141,47 +140,6 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     setFormData((prev) => ({ ...prev, localidade }));
     setMostrarSugestoes(false);
     setSugestoesLocalidade([]);
-  };
-
-  const capturarLocalizacao = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocalização não é suportada pelo seu navegador");
-      return;
-    }
-
-    setCapturandoLocalizacao(true);
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData((prev) => ({
-          ...prev,
-          coordenadas: {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          },
-        }));
-        setCapturandoLocalizacao(false);
-        setMensagemSucesso("📍 Localização capturada com sucesso!");
-        setTimeout(() => setMensagemSucesso(""), 3000);
-      },
-      (error) => {
-        setCapturandoLocalizacao(false);
-        let mensagem = "Erro ao capturar localização";
-        if (error.code === error.PERMISSION_DENIED) {
-          mensagem = "Permissão de localização negada";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          mensagem = "Localização indisponível";
-        } else if (error.code === error.TIMEOUT) {
-          mensagem = "Tempo esgotado ao buscar localização";
-        }
-        alert(mensagem);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      },
-    );
   };
 
   const handleSubmit = async (e) => {
@@ -379,25 +337,6 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
                 <AlertCircle className="w-4 h-4" />
                 {erros.endereco}
               </p>
-            )}
-          </div>
-
-          {/* Botão de Captura de Localização */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={capturarLocalizacao}
-              disabled={capturandoLocalizacao}
-              className="btn btn-outline flex items-center gap-2"
-            >
-              <MapPin className="w-4 h-4" />
-              {capturandoLocalizacao ? "Capturando..." : "Capturar GPS"}
-            </button>
-            {formData.coordenadas.lat && formData.coordenadas.lng && (
-              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                <Check className="w-4 h-4" />
-                Coordenadas capturadas
-              </span>
             )}
           </div>
         </div>
