@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./components/auth/AuthProvider";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
@@ -13,6 +13,27 @@ function AppContent() {
   const { user, loading, logout } = useAuth();
   const [abaAtiva, setAbaAtiva] = useState("dashboard");
   const [mostrarAuth, setMostrarAuth] = useState("login"); // 'login' ou 'register'
+  const [error, setError] = useState(null);
+
+  // Debug: Log para verificar se o app está carregando
+  useEffect(() => {
+    console.log("🚀 App carregado!");
+    console.log("📍 Base URL:", import.meta.env.BASE_URL);
+    console.log(
+      "🔑 Supabase URL:",
+      import.meta.env.VITE_SUPABASE_URL ? "Configurado" : "NÃO CONFIGURADO",
+    );
+
+    // Verificar se as variáveis de ambiente estão configuradas
+    if (
+      !import.meta.env.VITE_SUPABASE_URL ||
+      !import.meta.env.VITE_SUPABASE_ANON_KEY
+    ) {
+      setError(
+        "Configuração do Supabase não encontrada. Verifique as variáveis de ambiente.",
+      );
+    }
+  }, []);
 
   const handleTabChange = (tab) => {
     setAbaAtiva(tab);
@@ -27,6 +48,31 @@ function AppContent() {
     // Quando clicar em editar, vai para o formulário
     setAbaAtiva("formulario");
   };
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Erro de Configuração
+          </h1>
+          <p className="text-gray-700 mb-6">{error}</p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+            <p className="text-sm text-gray-600">
+              <strong>Para desenvolvedores:</strong>
+              <br />
+              Verifique se as variáveis de ambiente estão configuradas:
+              <br />
+              • VITE_SUPABASE_URL
+              <br />• VITE_SUPABASE_ANON_KEY
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state
   if (loading) {
