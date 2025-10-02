@@ -13,13 +13,17 @@ import {
   WifiOff,
   LogOut,
   User,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "./auth/AuthProvider";
+import usePermissions from "../hooks/usePermissions";
 
 const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
   const [menuAberto, setMenuAberto] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
   const { user, profile } = useAuth();
+  const { getRoleLabel, getRoleColor, isAdmin, canAccessTab } =
+    usePermissions();
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -34,12 +38,15 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
     };
   }, []);
 
-  const tabs = [
+  const allTabs = [
     { id: "dashboard", label: "Painel", icon: Home },
     { id: "formulario", label: "Novo Registro", icon: MapPin },
     { id: "registros", label: "Registros", icon: Table },
     { id: "analises", label: "Análises", icon: BarChart3 },
   ];
+
+  // Filtrar tabs baseado em permissões
+  const tabs = allTabs.filter((tab) => canAccessTab(tab.id));
 
   const handleTabClick = (tabId) => {
     onTabChange(tabId);
@@ -72,11 +79,19 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
             <nav className="hidden lg:flex items-center gap-2">
               {/* Informação do Usuário */}
               {user && (
-                <div className="flex items-center gap-2 px-3 py-2 text-white border-r border-primary-400 mr-2">
+                <div className="flex items-center gap-3 px-3 py-2 text-white border-r border-primary-400 mr-2">
                   <User className="w-5 h-5" />
-                  <span className="text-sm font-medium">
-                    {profile?.nome_completo || user.email}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">
+                      {profile?.nome_completo || user.email}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full border inline-flex items-center gap-1 w-fit ${getRoleColor()}`}
+                    >
+                      {isAdmin && <Shield className="w-3 h-3" />}
+                      {getRoleLabel()}
+                    </span>
+                  </div>
                 </div>
               )}
               {/* Botão de Logout */}
@@ -129,11 +144,19 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
               <div className="flex flex-col gap-2">
                 {/* Informação do Usuário Mobile */}
                 {user && (
-                  <div className="flex items-center gap-2 px-4 py-3 mb-2 bg-primary-600 rounded-lg">
+                  <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-primary-600 rounded-lg">
                     <User className="w-5 h-5" />
-                    <span className="text-sm font-medium">
-                      {profile?.nome_completo || user.email}
-                    </span>
+                    <div className="flex flex-col flex-1">
+                      <span className="text-sm font-medium">
+                        {profile?.nome_completo || user.email}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full border inline-flex items-center gap-1 w-fit mt-1 ${getRoleColor()}`}
+                      >
+                        {isAdmin && <Shield className="w-3 h-3" />}
+                        {getRoleLabel()}
+                      </span>
+                    </div>
                   </div>
                 )}
                 {tabs.map((tab) => {

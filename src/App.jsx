@@ -7,10 +7,13 @@ import Dashboard from "./components/Dashboard";
 import FormularioRegistro from "./components/FormularioRegistro";
 import TabelaRegistros from "./components/TabelaRegistros";
 import Analises from "./components/Analises";
+import AccessDenied from "./components/AccessDenied";
+import usePermissions from "./hooks/usePermissions";
 
 // Componente principal protegido (só acessível após login)
 function AppContent() {
   const { user, loading, logout } = useAuth();
+  const { permissions } = usePermissions();
   const [abaAtiva, setAbaAtiva] = useState("dashboard");
   const [mostrarAuth, setMostrarAuth] = useState("login"); // 'login' ou 'register'
   const [error, setError] = useState(null);
@@ -136,6 +139,16 @@ function AppContent() {
         return <TabelaRegistros onEdit={handleEditarRegistro} />;
 
       case "analises":
+        // Verificar se o usuário tem permissão para acessar análises
+        if (!permissions.canViewAnalises) {
+          return (
+            <AccessDenied
+              title="Acesso Restrito - Análises"
+              message="A página de Análises está disponível apenas para administradores do sistema."
+              onBack={() => setAbaAtiva("dashboard")}
+            />
+          );
+        }
         return <Analises />;
 
       default:

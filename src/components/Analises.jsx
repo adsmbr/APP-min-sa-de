@@ -15,6 +15,7 @@ import {
   Cat,
 } from "lucide-react";
 import useSupabaseStore from "../store/useSupabaseStore";
+import usePermissions from "../hooks/usePermissions";
 import {
   exportarParaCSV,
   exportarParaJSON,
@@ -54,6 +55,7 @@ const Analises = () => {
   const { registros, estatisticas, carregarRegistros, loading } =
     useSupabaseStore();
   const store = useSupabaseStore();
+  const { permissions, isAdmin } = usePermissions();
 
   const [filtroMapa, setFiltroMapa] = useState("todos"); // todos, caes, gatos
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
@@ -423,63 +425,69 @@ const Analises = () => {
         )}
       </div>
 
-      {/* Opções de Exportação */}
-      <div className="card">
-        <h3 className="card-header border-b border-gray-200 pb-4 mb-4">
-          <Download className="w-5 h-5" />
-          Exportar Dados
-        </h3>
+      {/* Seção de Exportação - Apenas para Admins */}
+      {permissions.canExportData && (
+        <div className="card">
+          <h3 className="card-header border-b border-gray-200 pb-4 mb-4">
+            <Download className="w-5 h-5" />
+            Exportar Dados
+          </h3>
 
-        {registros.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-            <p>Nenhum dado disponível para exportação</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {opcoesExportacao.map((opcao) => {
-              const Icone = opcao.icone;
-              return (
-                <button
-                  key={opcao.id}
-                  onClick={() => handleExportar(opcao.id)}
-                  disabled={exportando}
-                  className={`p-4 rounded-lg border-2 border-gray-200 ${opcao.bgHover} transition-all text-left hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`${opcao.cor}`}>
-                      <Icone className="w-6 h-6" />
+          {registros.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p>Nenhum dado disponível para exportação</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {opcoesExportacao.map((opcao) => {
+                const Icone = opcao.icone;
+                return (
+                  <button
+                    key={opcao.id}
+                    onClick={() => handleExportar(opcao.id)}
+                    disabled={exportando}
+                    className={`p-4 rounded-lg border-2 border-gray-200 ${opcao.bgHover} transition-all text-left hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`${opcao.cor}`}>
+                        <Icone className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-1">
+                          {opcao.titulo}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          {opcao.descricao}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 mb-1">
-                        {opcao.titulo}
-                      </h4>
-                      <p className="text-xs text-gray-600">{opcao.descricao}</p>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-        {/* Informação sobre exportações */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            Sobre as Exportações
-          </h4>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• CSV/Excel: Ideal para planilhas e análises básicas</li>
-            <li>• JSON: Backup completo com todos os dados</li>
-            <li>
-              • SPSS: Formato específico para análises estatísticas avançadas
-            </li>
-            <li>• GeoJSON: Para sistemas de informação geográfica (SIG)</li>
-            <li>• Backup Completo: Inclui todas as configurações do sistema</li>
-          </ul>
+          {/* Informação sobre exportações */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Sobre as Exportações
+            </h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• CSV/Excel: Ideal para planilhas e análises básicas</li>
+              <li>• JSON: Backup completo com todos os dados</li>
+              <li>
+                • SPSS: Formato específico para análises estatísticas avançadas
+              </li>
+              <li>• GeoJSON: Para sistemas de informação geográfica (SIG)</li>
+              <li>
+                • Backup Completo: Inclui todas as configurações do sistema
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Resumo Estatístico */}
       <div className="card">

@@ -188,7 +188,7 @@ export const AuthProvider = ({ children }) => {
             id: data.user.id,
             email: data.user.email,
             nome_completo: nomeCompleto.trim(),
-            role: "pesquisador",
+            role: "funcionario",
           },
         ]);
 
@@ -227,23 +227,23 @@ export const AuthProvider = ({ children }) => {
     return profile?.role === "admin";
   };
 
-  // Verificar se é coordenador
-  const isCoordenador = () => {
-    return profile?.role === "coordenador" || profile?.role === "admin";
+  // Verificar se é funcionário
+  const isFuncionario = () => {
+    return profile?.role === "funcionario";
   };
 
   // Verificar se pode editar registro
   const canEdit = (registroCriadoPor) => {
-    // Admin e coordenador podem editar tudo
-    if (isAdmin() || isCoordenador()) return true;
-    // Pesquisador só pode editar próprios registros
+    // Admin pode editar tudo
+    if (isAdmin()) return true;
+    // Funcionário só pode editar próprios registros
     return registroCriadoPor === user?.id;
   };
 
   // Verificar se pode excluir registro
   const canDelete = (_registroCriadoPor) => {
-    // Apenas admin e coordenador podem excluir
-    return isAdmin() || isCoordenador();
+    // Apenas admin pode excluir
+    return isAdmin();
   };
 
   // Atualizar perfil
@@ -276,7 +276,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated: !!user,
     isAdmin,
-    isCoordenador,
+    isFuncionario,
     canEdit,
     canDelete,
     login,

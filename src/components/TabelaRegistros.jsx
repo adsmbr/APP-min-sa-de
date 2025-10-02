@@ -21,6 +21,7 @@ import {
 import useSupabaseStore from "../store/useSupabaseStore";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import usePermissions from "../hooks/usePermissions";
 
 const TabelaRegistros = ({ onEdit }) => {
   const {
@@ -42,8 +43,37 @@ const TabelaRegistros = ({ onEdit }) => {
     loading,
   } = useSupabaseStore();
 
+  const { permissions } = usePermissions();
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [registroParaExcluir, setRegistroParaExcluir] = useState(null);
+</text>
+
+<old_text line=369>
+                      <td>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleEditar(registro)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Editar"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDuplicar(registro.id)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Duplicar"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmarExclusao(registro)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
 
   // Carregar registros do Supabase ao montar o componente
   useEffect(() => {
@@ -375,20 +405,24 @@ const TabelaRegistros = ({ onEdit }) => {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => handleDuplicar(registro.id)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Duplicar"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => confirmarExclusao(registro)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {permissions.canDuplicateRegistro && (
+                            <button
+                              onClick={() => handleDuplicar(registro.id)}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Duplicar"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                          )}
+                          {permissions.canDeleteRegistro && (
+                            <button
+                              onClick={() => confirmarExclusao(registro)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -484,20 +518,24 @@ const TabelaRegistros = ({ onEdit }) => {
                         <Edit className="w-4 h-4" />
                         Editar
                       </button>
-                      <button
-                        onClick={() => handleDuplicar(registro.id)}
-                        className="btn btn-outline btn-lg"
-                        title="Duplicar"
-                      >
-                        <Copy className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => confirmarExclusao(registro)}
-                        className="btn btn-danger btn-lg"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      {permissions.canDuplicateRegistro && (
+                        <button
+                          onClick={() => handleDuplicar(registro.id)}
+                          className="btn btn-outline btn-lg"
+                          title="Duplicar"
+                        >
+                          <Copy className="w-5 h-5" />
+                        </button>
+                      )}
+                      {permissions.canDeleteRegistro && (
+                        <button
+                          onClick={() => confirmarExclusao(registro)}
+                          className="btn btn-danger btn-lg"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
