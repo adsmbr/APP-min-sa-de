@@ -104,6 +104,8 @@ export const signOut = async () => {
  */
 export const getRegistros = async (filtros = {}) => {
   try {
+    console.log("🔍 Buscando registros...", filtros);
+
     let query = supabase
       .from("registros")
       .select(
@@ -127,10 +129,15 @@ export const getRegistros = async (filtros = {}) => {
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error("❌ Erro ao buscar registros:", error);
+      throw error;
+    }
+
+    console.log(`✅ ${data?.length || 0} registros encontrados`);
     return { data, error: null };
   } catch (error) {
-    console.error("Erro ao buscar registros:", error);
+    console.error("❌ Erro ao buscar registros:", error);
     return { data: null, error: error.message };
   }
 };
@@ -140,23 +147,37 @@ export const getRegistros = async (filtros = {}) => {
  */
 export const criarRegistro = async (registro) => {
   try {
+    console.log("📝 Tentando criar registro...", registro);
+
     const user = await getCurrentUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    console.log("👤 Usuário atual:", user ? user.id : "NULL");
+
+    if (!user) {
+      console.error("❌ Usuário não autenticado!");
+      throw new Error("Usuário não autenticado");
+    }
+
+    const registroComUsuario = {
+      ...registro,
+      criado_por: user.id,
+    };
+
+    console.log("💾 Salvando registro:", registroComUsuario);
 
     const { data, error } = await supabase
       .from("registros")
-      .insert([
-        {
-          ...registro,
-          criado_por: user.id,
-        },
-      ])
+      .insert([registroComUsuario])
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error("❌ Erro do Supabase:", error);
+      throw error;
+    }
+
+    console.log("✅ Registro criado com sucesso!", data);
     return { data, error: null };
   } catch (error) {
-    console.error("Erro ao criar registro:", error);
+    console.error("❌ Erro ao criar registro:", error);
     return { data: null, error: error.message };
   }
 };

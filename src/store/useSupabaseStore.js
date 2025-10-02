@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   supabase,
   getRegistros as fetchRegistros,
@@ -6,24 +6,24 @@ import {
   atualizarRegistro as updateRegistro,
   excluirRegistro as deleteRegistro,
   getEstatisticas as fetchEstatisticas,
-} from '../lib/supabase';
+} from "../lib/supabase";
 
 const useSupabaseStore = create((set, get) => ({
   // Estado inicial
   registros: [],
   registroEditando: null,
   filtros: {
-    busca: '',
-    localidade: '',
-    dataInicio: '',
-    dataFim: '',
-    tipoAnimal: 'todos', // todos, caes, gatos
+    busca: "",
+    localidade: "",
+    dataInicio: "",
+    dataFim: "",
+    tipoAnimal: "todos", // todos, caes, gatos
   },
   paginaAtual: 1,
   registrosPorPagina: 10,
   ordenacao: {
-    campo: 'data',
-    direcao: 'desc', // asc ou desc
+    campo: "data",
+    direcao: "desc", // asc ou desc
   },
   estatisticas: {
     totalRegistros: 0,
@@ -40,6 +40,7 @@ const useSupabaseStore = create((set, get) => ({
 
   // Carregar registros do Supabase
   carregarRegistros: async () => {
+    console.log("📊 useSupabaseStore: Carregando registros...");
     set({ loading: true, error: null });
     try {
       const { data, error } = await fetchRegistros();
@@ -58,19 +59,23 @@ const useSupabaseStore = create((set, get) => ({
         data: reg.data,
         tutor: reg.tutor,
         telefone: reg.telefone,
-        coordenadas: reg.latitude && reg.longitude
-          ? { lat: reg.latitude, lng: reg.longitude }
-          : null,
+        coordenadas:
+          reg.latitude && reg.longitude
+            ? { lat: reg.latitude, lng: reg.longitude }
+            : null,
         criadoEm: reg.criado_em,
         atualizadoEm: reg.atualizado_em,
         criadoPor: reg.criado_por,
       }));
 
+      console.log(
+        `✅ useSupabaseStore: ${registrosTransformados.length} registros carregados`,
+      );
       set({ registros: registrosTransformados, loading: false });
       get().calcularEstatisticas();
       return registrosTransformados;
     } catch (error) {
-      console.error('Erro ao carregar registros:', error);
+      console.error("❌ useSupabaseStore: Erro ao carregar registros:", error);
       set({ error: error.message, loading: false });
       return [];
     }
@@ -78,6 +83,7 @@ const useSupabaseStore = create((set, get) => ({
 
   // Adicionar registro
   adicionarRegistro: async (registro) => {
+    console.log("➕ useSupabaseStore: Adicionando registro...", registro);
     set({ loading: true, error: null });
     try {
       // Transformar dados para formato do Supabase
@@ -99,13 +105,16 @@ const useSupabaseStore = create((set, get) => ({
       const { data, error } = await criarRegistro(registroSupabase);
       if (error) throw new Error(error);
 
+      console.log(
+        "✅ useSupabaseStore: Registro adicionado, recarregando lista...",
+      );
       // Recarregar registros
       await get().carregarRegistros();
       set({ loading: false });
 
       return data?.[0];
     } catch (error) {
-      console.error('Erro ao adicionar registro:', error);
+      console.error("❌ useSupabaseStore: Erro ao adicionar registro:", error);
       set({ error: error.message, loading: false });
       throw error;
     }
@@ -138,7 +147,7 @@ const useSupabaseStore = create((set, get) => ({
       await get().carregarRegistros();
       set({ registroEditando: null, loading: false });
     } catch (error) {
-      console.error('Erro ao atualizar registro:', error);
+      console.error("Erro ao atualizar registro:", error);
       set({ error: error.message, loading: false });
       throw error;
     }
@@ -155,7 +164,7 @@ const useSupabaseStore = create((set, get) => ({
       await get().carregarRegistros();
       set({ loading: false });
     } catch (error) {
-      console.error('Erro ao excluir registro:', error);
+      console.error("Erro ao excluir registro:", error);
       set({ error: error.message, loading: false });
       throw error;
     }
@@ -165,7 +174,13 @@ const useSupabaseStore = create((set, get) => ({
   duplicarRegistro: async (id) => {
     const registro = get().registros.find((reg) => reg.id === id);
     if (registro) {
-      const { id: _, criadoEm, atualizadoEm, criadoPor, ...dadosParaDuplicar } = registro;
+      const {
+        id: _,
+        criadoEm,
+        atualizadoEm,
+        criadoPor,
+        ...dadosParaDuplicar
+      } = registro;
       return await get().adicionarRegistro(dadosParaDuplicar);
     }
   },
@@ -187,7 +202,7 @@ const useSupabaseStore = create((set, get) => ({
       (reg) =>
         reg.endereco.toLowerCase().trim() === endereco.toLowerCase().trim() &&
         reg.data === data &&
-        reg.id !== idAtual
+        reg.id !== idAtual,
     );
   },
 
@@ -202,11 +217,11 @@ const useSupabaseStore = create((set, get) => ({
   limparFiltros: () => {
     set({
       filtros: {
-        busca: '',
-        localidade: '',
-        dataInicio: '',
-        dataFim: '',
-        tipoAnimal: 'todos',
+        busca: "",
+        localidade: "",
+        dataInicio: "",
+        dataFim: "",
+        tipoAnimal: "todos",
       },
       paginaAtual: 1,
     });
@@ -227,9 +242,9 @@ const useSupabaseStore = create((set, get) => ({
       ordenacao: {
         campo,
         direcao:
-          state.ordenacao.campo === campo && state.ordenacao.direcao === 'asc'
-            ? 'desc'
-            : 'asc',
+          state.ordenacao.campo === campo && state.ordenacao.direcao === "asc"
+            ? "desc"
+            : "asc",
       },
     }));
   },
@@ -248,38 +263,38 @@ const useSupabaseStore = create((set, get) => ({
           reg.endereco.toLowerCase().includes(buscaLower) ||
           reg.tutor.toLowerCase().includes(buscaLower) ||
           reg.urb.toLowerCase().includes(buscaLower) ||
-          reg.telefone.includes(buscaLower)
+          reg.telefone.includes(buscaLower),
       );
     }
 
     // Filtrar por localidade
     if (filtros.localidade) {
       registrosFiltrados = registrosFiltrados.filter(
-        (reg) => reg.localidade === filtros.localidade
+        (reg) => reg.localidade === filtros.localidade,
       );
     }
 
     // Filtrar por período
     if (filtros.dataInicio) {
       registrosFiltrados = registrosFiltrados.filter(
-        (reg) => reg.data >= filtros.dataInicio
+        (reg) => reg.data >= filtros.dataInicio,
       );
     }
 
     if (filtros.dataFim) {
       registrosFiltrados = registrosFiltrados.filter(
-        (reg) => reg.data <= filtros.dataFim
+        (reg) => reg.data <= filtros.dataFim,
       );
     }
 
     // Filtrar por tipo de animal
-    if (filtros.tipoAnimal === 'caes') {
+    if (filtros.tipoAnimal === "caes") {
       registrosFiltrados = registrosFiltrados.filter(
-        (reg) => reg.caesMacho > 0 || reg.caesFemea > 0
+        (reg) => reg.caesMacho > 0 || reg.caesFemea > 0,
       );
-    } else if (filtros.tipoAnimal === 'gatos') {
+    } else if (filtros.tipoAnimal === "gatos") {
       registrosFiltrados = registrosFiltrados.filter(
-        (reg) => reg.gatosMacho > 0 || reg.gatosFemea > 0
+        (reg) => reg.gatosMacho > 0 || reg.gatosFemea > 0,
       );
     }
 
@@ -288,16 +303,16 @@ const useSupabaseStore = create((set, get) => ({
       let valorA = a[ordenacao.campo];
       let valorB = b[ordenacao.campo];
 
-      if (ordenacao.campo === 'data') {
+      if (ordenacao.campo === "data") {
         valorA = new Date(valorA);
         valorB = new Date(valorB);
-      } else if (typeof valorA === 'string') {
+      } else if (typeof valorA === "string") {
         valorA = valorA.toLowerCase();
         valorB = valorB.toLowerCase();
       }
 
-      if (valorA < valorB) return ordenacao.direcao === 'asc' ? -1 : 1;
-      if (valorA > valorB) return ordenacao.direcao === 'asc' ? 1 : -1;
+      if (valorA < valorB) return ordenacao.direcao === "asc" ? -1 : 1;
+      if (valorA > valorB) return ordenacao.direcao === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -358,10 +373,15 @@ const useSupabaseStore = create((set, get) => ({
         };
       }
 
-      stats.porLocalidade[reg.localidade].caes += (reg.caesMacho || 0) + (reg.caesFemea || 0);
-      stats.porLocalidade[reg.localidade].gatos += (reg.gatosMacho || 0) + (reg.gatosFemea || 0);
+      stats.porLocalidade[reg.localidade].caes +=
+        (reg.caesMacho || 0) + (reg.caesFemea || 0);
+      stats.porLocalidade[reg.localidade].gatos +=
+        (reg.gatosMacho || 0) + (reg.gatosFemea || 0);
       stats.porLocalidade[reg.localidade].total +=
-        (reg.caesMacho || 0) + (reg.caesFemea || 0) + (reg.gatosMacho || 0) + (reg.gatosFemea || 0);
+        (reg.caesMacho || 0) +
+        (reg.caesFemea || 0) +
+        (reg.gatosMacho || 0) +
+        (reg.gatosFemea || 0);
       stats.porLocalidade[reg.localidade].registros += 1;
     });
 
@@ -374,18 +394,18 @@ const useSupabaseStore = create((set, get) => ({
   // Subscrever a mudanças em tempo real
   subscribeToChanges: () => {
     const channel = supabase
-      .channel('registros-changes')
+      .channel("registros-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'registros',
+          event: "*",
+          schema: "public",
+          table: "registros",
         },
         () => {
-          console.log('Mudança detectada, recarregando registros...');
+          console.log("Mudança detectada, recarregando registros...");
           get().carregarRegistros();
-        }
+        },
       )
       .subscribe();
 
