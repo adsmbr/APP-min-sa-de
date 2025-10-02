@@ -14,10 +14,12 @@ import {
   LogOut,
   User,
 } from "lucide-react";
+import { useAuth } from "./auth/AuthProvider";
 
 const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
   const [menuAberto, setMenuAberto] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
+  const { user, profile } = useAuth();
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -68,6 +70,15 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
 
             {/* Navegação Desktop */}
             <nav className="hidden lg:flex items-center gap-2">
+              {/* Informação do Usuário */}
+              {user && (
+                <div className="flex items-center gap-2 px-3 py-2 text-white border-r border-primary-400 mr-2">
+                  <User className="w-5 h-5" />
+                  <span className="text-sm font-medium">
+                    {profile?.nome_completo || user.email}
+                  </span>
+                </div>
+              )}
               {/* Botão de Logout */}
               {onLogout && (
                 <button
@@ -116,6 +127,15 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
           {menuAberto && (
             <nav className="lg:hidden pb-4 animate-fadeIn">
               <div className="flex flex-col gap-2">
+                {/* Informação do Usuário Mobile */}
+                {user && (
+                  <div className="flex items-center gap-2 px-4 py-3 mb-2 bg-primary-600 rounded-lg">
+                    <User className="w-5 h-5" />
+                    <span className="text-sm font-medium">
+                      {profile?.nome_completo || user.email}
+                    </span>
+                  </div>
+                )}
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (

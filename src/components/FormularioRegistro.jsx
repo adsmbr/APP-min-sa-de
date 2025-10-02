@@ -118,8 +118,12 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
       if (valorProcessado < 0) valorProcessado = 0;
     }
 
-    // Sanitizar strings (exceto endereço que precisa de espaços)
-    if (typeof valorProcessado === "string" && name !== "endereco") {
+    // Sanitizar strings (exceto endereço e tutor que precisam de espaços)
+    if (
+      typeof valorProcessado === "string" &&
+      name !== "endereco" &&
+      name !== "tutor"
+    ) {
       valorProcessado = sanitizarString(valorProcessado);
     }
 
