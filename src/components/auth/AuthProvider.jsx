@@ -1,10 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import {
-  supabase,
-  getCurrentUser,
-  getUserProfile,
-  signOut,
-} from "../../lib/supabase";
+import { createContext, useContext, useState, useEffect } from "react";
+import { supabase, getUserProfile, signOut } from "../../lib/supabase";
 
 // Criar contexto de autenticação
 const AuthContext = createContext({});
@@ -133,9 +128,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         // Sempre garantir que loading para
-        if (get().loading) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     });
 
@@ -248,7 +241,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Verificar se pode excluir registro
-  const canDelete = (registroCriadoPor) => {
+  const canDelete = (_registroCriadoPor) => {
     // Apenas admin e coordenador podem excluir
     return isAdmin() || isCoordenador();
   };
