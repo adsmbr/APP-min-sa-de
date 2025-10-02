@@ -28,10 +28,36 @@ Erro ao salvar registro: Could not find the table 'public.registros' in the sche
 
 ### **3. Executar o Script SQL**
 
-1. Copie **TODO** o conteúdo do arquivo `supabase-schema.sql` (na raiz do projeto)
-2. Cole no editor SQL do Supabase
-3. Clique no botão **Run** (▶️ Executar) ou pressione `Ctrl + Enter`
-4. Aguarde a execução completar
+⚠️ **IMPORTANTE:** Use o arquivo **`supabase-minimo.sql`** em vez do `supabase-schema.sql`
+
+1. Abra o arquivo **`supabase-minimo.sql`** (na raiz do projeto)
+2. Copie **TODO** o conteúdo do arquivo
+3. Cole no editor SQL do Supabase
+4. Clique no botão **Run** (▶️ Executar) ou pressione `Ctrl + Enter`
+5. Aguarde a execução completar (5-10 segundos)
+
+**Se der erro "snippet doesn't exist":**
+- Feche o SQL Editor completamente
+- Abra novamente: SQL Editor → New Query
+- Cole o script novamente e execute
+</text>
+
+<old_text line=122>
+## 🔧 Problemas Comuns
+
+### **Erro: "permission denied"**
+**Solução:** As policies não foram criadas corretamente. Execute novamente a seção de POLICIES do script.
+
+### **Erro: "relation already exists"**
+**Solução:** As tabelas já existem. Você pode:
+- Deletar as tabelas existentes: `DROP TABLE registros, profiles CASCADE;`
+- Ou pular a criação de tabelas e executar apenas os triggers e policies
+
+### **Erro: "function uuid_generate_v4() does not exist"**
+**Solução:** Execute:
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```
 
 ### **4. Verificar se as Tabelas foram Criadas**
 
@@ -80,8 +106,8 @@ Erro ao salvar registro: Could not find the table 'public.registros' in the sche
 ### **Teste 1: Verificar Tabelas**
 Execute no SQL Editor:
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
+SELECT table_name
+FROM information_schema.tables
 WHERE table_schema = 'public';
 ```
 
@@ -91,18 +117,18 @@ Deve retornar: `profiles` e `registros`
 Execute no SQL Editor:
 ```sql
 INSERT INTO registros (
-    urb, 
-    localidade, 
-    endereco, 
-    caes_macho, 
-    caes_femea, 
+    urb,
+    localidade,
+    endereco,
+    caes_macho,
+    caes_femea,
     data
 ) VALUES (
-    'URB-001', 
-    'Centro', 
-    'Rua Teste, 123', 
-    2, 
-    3, 
+    'URB-001',
+    'Centro',
+    'Rua Teste, 123',
+    2,
+    3,
     CURRENT_DATE
 );
 
@@ -137,13 +163,29 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 ---
 
+## 📁 Qual Script Usar?
+
+- **`supabase-minimo.sql`** ✅ RECOMENDADO
+  - Script simplificado e testado
+  - Funciona na maioria dos casos
+  - Menos propenso a erros
+  
+- **`supabase-schema-simples.sql`** 
+  - Versão com mais comentários
+  - Pode ser executado em partes
+
+- **`supabase-schema.sql`**
+  - Script completo original
+  - Use apenas se os outros derem erro
+
 ## 📞 Suporte
 
 Se ainda estiver com problemas:
 1. Verifique se você está logado no Supabase
-2. Verifique se o projeto correto está selecionado
+2. Verifique se o projeto correto está selecionado (wypnotezypjdjjznkcyd)
 3. Verifique os logs de erro no SQL Editor
-4. Entre em contato com o desenvolvedor
+4. Tente usar o **`supabase-minimo.sql`**
+5. Se persistir, delete as tabelas e tente novamente
 
 ---
 
