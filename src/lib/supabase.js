@@ -108,12 +108,7 @@ export const getRegistros = async (filtros = {}) => {
 
     let query = supabase
       .from("registros")
-      .select(
-        `
-        *,
-        criador:profiles!criado_por(nome_completo, email)
-      `,
-      )
+      .select("*")
       .order("criado_em", { ascending: false });
 
     // Aplicar filtros se existirem
