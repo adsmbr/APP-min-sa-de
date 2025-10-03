@@ -36,8 +36,8 @@ CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
 UPDATE public.profiles
 SET role = 'admin'
 WHERE email IN (
-    'seuemail@exemplo.com',        -- Substitua pelo email do chefe
-    'emailparceiro@exemplo.com'    -- Substitua pelo email do parceiro
+    'arimalaco@gmail.com',        -- Substitua pelo email do chefe
+    'simeimontijo@gmail.com'    -- Substitua pelo email do parceiro
 );
 
 -- Método 2: Por ID específico (se souber o UUID)

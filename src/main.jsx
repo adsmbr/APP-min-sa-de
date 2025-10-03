@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
+import { logger } from "./utils/logger.js";
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -15,7 +16,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("❌ Erro capturado:", error, errorInfo);
+    logger.error("❌ Erro capturado:", error, errorInfo);
   }
 
   render() {
@@ -71,10 +72,10 @@ class ErrorBoundary extends React.Component {
 }
 
 // Logs de debug
-console.log("🎯 main.jsx carregado");
-console.log("🌍 Environment:", import.meta.env.MODE);
-console.log("📦 Base URL:", import.meta.env.BASE_URL);
-console.log(
+logger.info("🎯 main.jsx carregado");
+logger.info("🌍 Environment:", import.meta.env.MODE);
+logger.info("📦 Base URL:", import.meta.env.BASE_URL);
+logger.info(
   "🔐 Supabase URL:",
   import.meta.env.VITE_SUPABASE_URL || "❌ NÃO CONFIGURADO",
 );
@@ -82,11 +83,11 @@ console.log(
 // Verificar se root element existe
 const rootElement = document.getElementById("root");
 if (!rootElement) {
-  console.error("❌ Elemento root não encontrado!");
+  logger.error("❌ Elemento root não encontrado!");
   document.body.innerHTML =
     '<div style="padding: 20px; color: red;">Erro: Elemento root não encontrado</div>';
 } else {
-  console.log("✅ Elemento root encontrado");
+  logger.info("✅ Elemento root encontrado");
 
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>

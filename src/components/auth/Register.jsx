@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { UserPlus, Mail, Lock, Eye, EyeOff, AlertCircle, User, ArrowLeft, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from "./AuthProvider";
+import { logger } from "../../utils/logger";
 
 const Register = ({ onRegisterSuccess, onToggleLogin }) => {
   const [formData, setFormData] = useState({
@@ -120,7 +122,7 @@ const Register = ({ onRegisterSuccess, onToggleLogin }) => {
         ]);
 
         if (profileError) {
-          console.error('Erro ao criar perfil:', profileError);
+          logger.error('Erro ao criar perfil:', profileError);
           // Não vamos bloquear o cadastro por isso
         }
 
@@ -137,7 +139,7 @@ const Register = ({ onRegisterSuccess, onToggleLogin }) => {
         }
       }
     } catch (error) {
-      console.error('Erro no registro:', error);
+      logger.error('Erro no registro:', error);
 
       if (error.message.includes('User already registered')) {
         setErro('Este email já está cadastrado. Faça login ou recupere sua senha.');

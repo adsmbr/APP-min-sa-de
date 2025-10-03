@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { MapPin, Save, X, Loader2 } from "lucide-react";
+import { logger } from "../utils/logger";
+import { useState, useEffect } from "react";
 import {
   Save,
   X,
   AlertCircle,
   Check,
+  LocateFixed,
   MapPin,
+  Map,
   Calendar,
   User,
   Phone,
-  Home as HomeIcon,
-  Map,
 } from "lucide-react";
 import InputMask from "react-input-mask";
 import useSupabaseStore from "../store/useSupabaseStore";
@@ -27,7 +30,6 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     cancelarEdicao,
     verificarDuplicata,
     getLocalidades,
-    loading: storeLoading,
   } = useSupabaseStore();
 
   const localidadesExistentes = getLocalidades();
@@ -37,6 +39,8 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     urb: "",
     localidade: "",
     endereco: "",
+    latitude: "", // Adicionado para geolocalização
+    longitude: "", // Adicionado para geolocalização
     caesMacho: 0,
     caesFemea: 0,
     gatosMacho: 0,
@@ -47,11 +51,15 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
   };
 
   const [formData, setFormData] = useState(estadoInicial);
+
   const [erros, setErros] = useState({});
   const [tocado, setTocado] = useState({});
   const [salvando, setSalvando] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState("");
   const [avisosDuplicata, setAvisosDuplicata] = useState("");
+  const [gettingLocation, setGettingLocation] = useState(false); // Novo estado para carregamento do GPS
+  const [locationError, setLocationError] = useState(null); // Novo estado para erros de geolocalização
+  const [showManualCoords, setShowManualCoords] = useState(false); // Novo estado para mostrar campos manuais
 
   const [sugestoesLocalidade, setSugestoesLocalidade] = useState([]);
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
@@ -67,7 +75,37 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
   useEffect(() => {
     if (Object.keys(tocado).length > 0) {
       const resultado = validarFormularioRegistro(formData);
-      setErros(resultado.erros);
+      let errosAtuais = { ...resultado.erros };
+
+      // Validação de Latitude
+      if (tocado.latitude && formData.latitude !== "") {
+        const lat = parseFloat(formData.latitude);
+        if (isNaN(lat) || lat < -90 || lat > 90) {
+          errosAtuais.latitude =
+            "Latitude inválida (ex: -23.55052). Deve ser um número entre -90 e 90.";
+        } else {
+          delete errosAtuais.latitude;
+        }
+      } else if (tocado.latitude && formData.latitude === "") {
+        // Latitude é opcional, então vazia não é um erro se tocada e não preenchida
+        delete errosAtuais.latitude;
+      }
+
+      // Validação de Longitude
+      if (tocado.longitude && formData.longitude !== "") {
+        const lon = parseFloat(formData.longitude);
+        if (isNaN(lon) || lon < -180 || lon > 180) {
+          errosAtuais.longitude =
+            "Longitude inválida (ex: -46.633308). Deve ser um número entre -180 e 180.";
+        } else {
+          delete errosAtuais.longitude;
+        }
+      } else if (tocado.longitude && formData.longitude === "") {
+        // Longitude é opcional, então vazia não é um erro se tocada e não preenchida
+        delete errosAtuais.longitude;
+      }
+
+      setErros(errosAtuais);
     }
   }, [formData, tocado]);
 
@@ -146,6 +184,70 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     setSugestoesLocalidade([]);
   };
 
+  const handleGetLocation = () => {
+    setGettingLocation(true);
+    setLocationError(null);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData((prev) => ({
+            ...prev,
+            latitude: position.coords.latitude.toFixed(6),
+            longitude: position.coords.longitude.toFixed(6),
+          }));
+          setGettingLocation(false);
+          setShowManualCoords(true); // Exibir campos manuais após obter localização
+        },
+        (error) => {
+          logger.error("Erro ao obter localização:", error);
+          let errorMessage = "Não foi possível obter a localização. ";
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += "Permissão negada pelo usuário.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += "Informação de localização indisponível.";
+              break;
+            case error.TIMEOUT:
+              errorMessage +=
+                "Tempo limite excedido ao tentar obter localização.";
+              break;
+            default:
+              errorMessage += "Erro desconhecido.";
+              break;
+          }
+          setLocationError(errorMessage + " Por favor, insira manualmente.");
+          setGettingLocation(false);
+          setShowManualCoords(true); // Sempre exibir campos manuais em caso de erro
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      );
+    } else {
+      setLocationError(
+        "Geolocalização não é suportada por este navegador. Por favor, insira manualmente.",
+      );
+      setGettingLocation(false);
+      setShowManualCoords(true);
+    }
+    // Marcar campos como tocados para validação inicial se a opção manual for forçada
+    setTocado((prev) => ({ ...prev, latitude: true, longitude: true }));
+  };
+
+  const handleManualCoordChange = (e) => {
+    const { name, value } = e.target;
+    // Permite dígitos, ponto decimal e sinal de menos
+    const numericValue = value.replace(/[^0-9.-]/g, "");
+    setFormData((prev) => ({
+      ...prev,
+      [name]: numericValue,
+    }));
+    // Marcar campo como tocado para ativar validação em tempo real
+    setTocado((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -166,7 +268,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
       if (primeiroErro) {
         primeiroErro.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-      return;
+      return; // Sair da função se a validação falhar
     }
 
     setSalvando(true);
@@ -341,6 +443,114 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
                 <AlertCircle className="w-4 h-4" />
                 {erros.endereco}
               </p>
+            )}
+          </div>
+
+          {/* Seção de Geolocalização (NOVO) */}
+          <div className="space-y-4 pt-4 border-t border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <LocateFixed className="w-5 h-5 text-primary" />
+              Coordenadas de Geolocalização (Opcional)
+            </h3>
+            <p className="text-sm text-gray-600">
+              Obtenha automaticamente via GPS ou insira manualmente.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleGetLocation}
+              disabled={gettingLocation}
+              className="btn btn-secondary flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              {gettingLocation ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Obtendo localização...
+                </>
+              ) : (
+                <>
+                  <LocateFixed className="w-5 h-5" />
+                  Obter Localização Atual
+                </>
+              )}
+            </button>
+
+            {locationError && (
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg animate-fadeIn flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                <span className="font-medium">{locationError}</span>
+              </div>
+            )}
+
+            {(showManualCoords || formData.latitude || formData.longitude) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {/* Latitude */}
+                <div className="form-group">
+                  <label htmlFor="latitude" className="label">
+                    Latitude
+                  </label>
+                  <input
+                    type="text"
+                    id="latitude"
+                    name="latitude"
+                    value={formData.latitude}
+                    onChange={handleManualCoordChange}
+                    onBlur={() => handleBlur("latitude")}
+                    className={`input ${erros.latitude && tocado.latitude ? "input-error" : ""}`}
+                    placeholder="-22.906847"
+                    maxLength={20}
+                  />
+                  {erros.latitude && tocado.latitude && (
+                    <p className="error-message">
+                      <AlertCircle className="w-4 h-4" />
+                      {erros.latitude}
+                    </p>
+                  )}
+                </div>
+
+                {/* Longitude */}
+                <div className="form-group">
+                  <label htmlFor="longitude" className="label">
+                    Longitude
+                  </label>
+                  <input
+                    type="text"
+                    id="longitude"
+                    name="longitude"
+                    value={formData.longitude}
+                    onChange={handleManualCoordChange}
+                    onBlur={() => handleBlur("longitude")}
+                    className={`input ${erros.longitude && tocado.longitude ? "input-error" : ""}`}
+                    placeholder="-43.172897"
+                    maxLength={20}
+                  />
+                  {erros.longitude && tocado.longitude && (
+                    <p className="error-message">
+                      <AlertCircle className="w-4 h-4" />
+                      {erros.longitude}
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>

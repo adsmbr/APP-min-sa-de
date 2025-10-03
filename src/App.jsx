@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./components/auth/AuthProvider";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
@@ -9,6 +9,7 @@ import TabelaRegistros from "./components/TabelaRegistros";
 import Analises from "./components/Analises";
 import AccessDenied from "./components/AccessDenied";
 import usePermissions from "./hooks/usePermissions";
+import { logger } from "./utils/logger.js";
 
 // Componente principal protegido (só acessível após login)
 function AppContent() {
@@ -20,9 +21,9 @@ function AppContent() {
 
   // Debug: Log para verificar se o app está carregando
   useEffect(() => {
-    console.log("🚀 App carregado!");
-    console.log("📍 Base URL:", import.meta.env.BASE_URL);
-    console.log(
+    logger.info("🚀 App carregado!");
+    logger.info("📍 Base URL:", import.meta.env.BASE_URL);
+    logger.info(
       "🔑 Supabase URL:",
       import.meta.env.VITE_SUPABASE_URL ? "Configurado" : "NÃO CONFIGURADO",
     );
