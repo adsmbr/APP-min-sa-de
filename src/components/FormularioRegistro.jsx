@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { MapPin, Save, X, Loader2 } from "lucide-react";
-import { logger } from "../utils/logger";
-import { useState, useEffect } from "react";
 import {
+  MapPin,
   Save,
   X,
+  Loader2,
   AlertCircle,
   Check,
   LocateFixed,
-  MapPin,
   Map,
   Calendar,
   User,
   Phone,
 } from "lucide-react";
+import { logger } from "../utils/logger";
 import InputMask from "react-input-mask";
 import useSupabaseStore from "../store/useSupabaseStore";
 import {
