@@ -1,0 +1,58 @@
+MIT License
+
+Copyright (c) 2024 Sistema de Registro - Nova Iguaçu/RJ
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+AVISO LEGAL / LEGAL NOTICE
+
+Este software foi desenvolvido para fins de pesquisa veterinária e
+epidemiológica no município de Nova Iguaçu, Rio de Janeiro, Brasil.
+
+This software was developed for veterinary and epidemiological research
+purposes in the municipality of Nova Iguaçu, Rio de Janeiro, Brazil.
+
+O uso deste software implica em concordância com os seguintes termos:
+
+1. PRIVACIDADE DE DADOS
+   Os desenvolvedores não coletam, armazenam ou transmitem quaisquer dados
+   inseridos pelos usuários. Todos os dados são armazenados localmente no
+   navegador do usuário.
+
+2. RESPONSABILIDADE
+   Os usuários são responsáveis pela veracidade e legalidade dos dados
+   coletados e armazenados através deste sistema.
+
+3. CONFORMIDADE LGPD
+   O uso deste sistema deve estar em conformidade com a Lei Geral de
+   Proteção de Dados (LGPD - Lei nº 13.709/2018) e demais legislações
+   aplicáveis.
+
+4. USO EDUCACIONAL E CIENTÍFICO
+   Este software destina-se primariamente ao uso em pesquisas científicas
+   e atividades educacionais relacionadas à medicina veterinária e saúde
+   pública.
+
+5. SEM GARANTIAS
+   O software é fornecido "como está", sem garantias de qualquer tipo,
+   expressas ou implícitas.
+
+Para mais informações, consulte a documentação completa em README.md

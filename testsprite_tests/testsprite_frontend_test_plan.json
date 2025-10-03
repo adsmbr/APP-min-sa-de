@@ -1,0 +1,578 @@
+[
+  {
+    "id": "TC001",
+    "title": "Login with valid credentials",
+    "description": "Verify that a user can successfully login with valid registered credentials using Supabase Auth.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid username/email and password."
+      },
+      {
+        "type": "action",
+        "description": "Click the login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is redirected to the dashboard."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the loading screen disappears and dashboard content is displayed."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Login with invalid credentials",
+    "description": "Verify that login fails when a user enters invalid credentials and appropriate error message is shown.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter an invalid username/email or password."
+      },
+      {
+        "type": "action",
+        "description": "Click the login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error message about invalid credentials is displayed."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user remains on the login page."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Logout functionality",
+    "description": "Verify that a logged-in user can logout successfully and is redirected to the login page.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login successfully with valid credentials."
+      },
+      {
+        "type": "action",
+        "description": "Click the logout button/link."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user session is cleared."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is redirected to the login page."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Session persistence after page refresh",
+    "description": "Verify that authenticated session persists after refreshing or revisiting the application.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login successfully."
+      },
+      {
+        "type": "action",
+        "description": "Refresh the browser or close and reopen the browser tab within session expiry."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user remains logged-in and dashboard is displayed without needing to login again."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Password recovery flow",
+    "description": "Verify that users can request password recovery and receive instructions.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Go to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Click on 'forgot password' link."
+      },
+      {
+        "type": "action",
+        "description": "Input registered email address."
+      },
+      {
+        "type": "action",
+        "description": "Submit password recovery request."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify confirmation message about recovery email is displayed."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Loading screen disappears after login",
+    "description": "Verify the app does not get stuck on loading screen indefinitely after successful login resolving the infinite loading bug.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform login with valid credentials."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the loading spinner disappears within reasonable time."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that dashboard content loads and is interactive."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Register new animal record with valid data",
+    "description": "Verify a user can register a new animal with all required fields valid and GPS coordinates captured automatically.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and navigate to the registration form."
+      },
+      {
+        "type": "action",
+        "description": "Fill in all required fields correctly including name, species (dog/cat), and masked phone number."
+      },
+      {
+        "type": "action",
+        "description": "Allow app to capture GPS coordinates automatically."
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify new record appears in the records table and on the map with correct location."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Register animal with invalid phone number format",
+    "description": "Verify the form validation detects invalid Brazilian phone numbers and prevents submission.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the animal registration form."
+      },
+      {
+        "type": "action",
+        "description": "Enter invalid phone number format in the phone input field."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit the form."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify real-time validation message appears and form cannot be submitted."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Prevent duplicate animal registration",
+    "description": "Verify that duplicate animal records (based on key attributes such as name and location) are detected and prevented in the form.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to register a new animal with data identical to an existing animal record."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify duplicate detection warning is displayed."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify form submission is blocked until data is changed."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Editing animal record permissions",
+    "description": "Verify edit functionality in the records table respects user permissions; Admin can edit any record, Funcionário only permitted records.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin and open records table."
+      },
+      {
+        "type": "action",
+        "description": "Edit any animal record successfully."
+      },
+      {
+        "type": "action",
+        "description": "Logout and login as Funcionário."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to edit records permitted and verify success."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to edit restricted records and verify editing is blocked or disabled."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Table filters, search, pagination",
+    "description": "Verify that the animal records table supports advanced filtering by species, global search, and pagination properly functioning.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open records table."
+      },
+      {
+        "type": "action",
+        "description": "Apply species filter (dog or cat)."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only filtered animal records are displayed."
+      },
+      {
+        "type": "action",
+        "description": "Use global search to find specific records by name or other attributes."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify search results are correct."
+      },
+      {
+        "type": "action",
+        "description": "Navigate through the pages using pagination controls."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify pages update and display correct records."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Map markers and filters",
+    "description": "Verify that the interactive map displays all animal records with GPS markers and allows filtering by animal type.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the maps interface."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all animal records are shown as markers at correct locations."
+      },
+      {
+        "type": "action",
+        "description": "Filter markers by selecting animal type (dog or cat)."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only markers of selected type remain visible."
+      },
+      {
+        "type": "action",
+        "description": "Click on a marker to open popup."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify popup displays correct animal details."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Export data functionality",
+    "description": "Verify that animal records can be exported correctly in all supported formats: CSV, JSON, SPSS, GeoJSON, TXT.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to export interface or dashboard export section."
+      },
+      {
+        "type": "action",
+        "description": "Select each supported format one by one."
+      },
+      {
+        "type": "action",
+        "description": "Initiate export and download the file."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the downloaded file is not empty."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify file format matches the selected type and data structure is consistent with records."
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Real-time data synchronization across users",
+    "description": "Verify that when one user adds or edits animal records, the changes are updated in real-time on other users' dashboards and tables without page refresh.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as User A and User B on two separate sessions/devices."
+      },
+      {
+        "type": "action",
+        "description": "User A adds a new animal record."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify User B's dashboard and records table display the new record in real time."
+      },
+      {
+        "type": "action",
+        "description": "User B updates an existing record."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify User A sees the updated record immediately."
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Offline mode functionality with LocalStorage",
+    "description": "Verify application operates fully offline including data entry and viewing, with data syncing automatically when connectivity is restored.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Disconnect device from internet (simulate offline mode)."
+      },
+      {
+        "type": "action",
+        "description": "Open the application and verify it loads from LocalStorage."
+      },
+      {
+        "type": "action",
+        "description": "Add new animal records and edit existing ones while offline."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify records are saved locally and UI shows offline status indicator."
+      },
+      {
+        "type": "action",
+        "description": "Reconnect to the internet."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify local changes synchronize with cloud backend and UI shows online status."
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Access control enforcement for admin vs employee",
+    "description": "Verify that role-based permissions prevent unauthorized access and operations for 'Funcionário' and allow full access for 'Admin'.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as 'Funcionário' user."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access user management and audit logs."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied or those options are hidden."
+      },
+      {
+        "type": "action",
+        "description": "Attempt restricted operations like deleting certain records."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify actions are blocked or show permission error."
+      },
+      {
+        "type": "action",
+        "description": "Logout and login as 'Admin'."
+      },
+      {
+        "type": "action",
+        "description": "Access user management, audit logs, and all record management features."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify full access and no restrictions."
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Audit log accuracy and accessibility",
+    "description": "Verify that all modifications are correctly recorded in audit logs and accessible only to authorized users.",
+    "category": "security",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as Admin."
+      },
+      {
+        "type": "action",
+        "description": "Perform various data modifications (add, edit, delete) on animal records."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to audit log section."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify logs accurately display user actions with timestamps and record details."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify non-admin users cannot access audit logs."
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Dashboard responsiveness and rendering",
+    "description": "Verify dashboard UI components (charts, cards, graphs) render correctly on desktop, tablet, and mobile with responsive layout.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access dashboard on desktop browser."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all dashboard elements appear correctly and are interactive."
+      },
+      {
+        "type": "action",
+        "description": "Access dashboard on tablet screen size emulation."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify layout adjusts properly without overlapping or clipping."
+      },
+      {
+        "type": "action",
+        "description": "Access dashboard on mobile phone screen emulation."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify responsive behavior with optimized UI for small screens."
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Sanitization and input validation for security",
+    "description": "Verify that all inputs across the application are sanitized to prevent injection attacks and validated server-side.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to input scripts or special characters into form fields like name, phone, descriptions."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify client-side validation blocks invalid inputs or escapes dangerous characters."
+      },
+      {
+        "type": "action",
+        "description": "Submit malicious payloads and verify server-side rejects or sanitizes inputs correctly."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no security errors occur and data stored is safe."
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Loading timeout and error state handling",
+    "description": "Verify that the app properly handles loading timeouts and shows error messages if backend or network is unreachable.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate backend downtime or network disconnection."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to login or load dashboard."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify loading screen does not persist indefinitely."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate error or timeout message is displayed to the user."
+      },
+      {
+        "type": "action",
+        "description": "Retry connection and verify recovery to normal functioning."
+      }
+    ]
+  }
+]
