@@ -70,7 +70,7 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
                   Sistema de Registro
                 </h1>
                 <p className="text-xs md:text-sm text-primary-100">
-                  Estudo Nova Iguaçu/RJ
+                  Nova Iguaçu/RJ
                 </p>
               </div>
             </div>
