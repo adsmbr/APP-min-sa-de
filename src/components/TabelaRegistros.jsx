@@ -136,7 +136,7 @@ const TabelaRegistros = ({ onEdit }) => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Buscar por localidade, endereço, tutor, URB ou telefone..."
+                placeholder="Buscar por localidade, endereço, tutor, URG ou telefone..."
                 value={filtros.busca}
                 onChange={handleBuscaChange}
                 className="input pl-10 w-full"
@@ -302,7 +302,7 @@ const TabelaRegistros = ({ onEdit }) => {
                       onClick={() => handleOrdenacao("urb")}
                       className="flex items-center gap-1 hover:text-primary"
                     >
-                      URB {renderIconeOrdenacao("urb")}
+                      URG {renderIconeOrdenacao("urb")}
                     </button>
                   </th>
                   <th>
@@ -590,7 +590,7 @@ const TabelaRegistros = ({ onEdit }) => {
 
                 <div className="text-left bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                   <p>
-                    <span className="font-medium">URB:</span>{" "}
+                    <span className="font-medium">URG:</span>{" "}
                     {registroParaExcluir.urb}
                   </p>
                   <p>

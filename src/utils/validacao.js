@@ -84,9 +84,9 @@ export const validarDataNaoFutura = (data) => {
 };
 
 /**
- * Valida URB (Unidade de Registro Básico)
+ * Valida URG (Unidade de Registro Geográfico)
  */
-export const validarURB = (urb) => {
+export const validarURG = (urb) => {
   if (!urb) return false;
   const urbLimpo = urb.trim();
   return urbLimpo.length >= 3 && urbLimpo.length <= 50;
@@ -166,11 +166,11 @@ export const formatarCEP = (cep) => {
 export const validarFormularioRegistro = (dados) => {
   const erros = {};
 
-  // URB obrigatório
+  // URG obrigatório
   if (!validarObrigatorio(dados.urb)) {
-    erros.urb = 'URB é obrigatório';
-  } else if (!validarURB(dados.urb)) {
-    erros.urb = 'URB deve ter entre 3 e 50 caracteres';
+    erros.urb = 'URG é obrigatório';
+  } else if (!validarURG(dados.urb)) {
+    erros.urb = 'URG deve ter entre 3 e 50 caracteres';
   }
 
   // Localidade obrigatória
@@ -363,7 +363,7 @@ export default {
   validarNumeroPositivo,
   validarData,
   validarDataNaoFutura,
-  validarURB,
+  validarURG,
   validarEndereco,
   validarLocalidade,
   validarNomeTutor,

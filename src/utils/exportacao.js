@@ -15,7 +15,7 @@ export const exportarParaCSV = (registros, nomeArquivo = 'registros-nova-iguacu'
 
   // Preparar dados para CSV
   const dadosParaExportar = registros.map((registro) => ({
-    'URB': registro.urb,
+    'URG': registro.urb,
     'Localidade': registro.localidade,
     'Endereço': registro.endereco,
     'Cães Macho': registro.caesMacho,
@@ -192,7 +192,7 @@ export const exportarParaSPSS = (registros) => {
   // Preparar dados com variáveis categóricas codificadas
   const dadosParaSPSS = registros.map((registro, index) => ({
     'ID': index + 1,
-    'URB': registro.urb,
+    'URG': registro.urb,
     'LOCALIDADE': registro.localidade,
     'ENDERECO': registro.endereco,
     'CAES_M': registro.caesMacho,
@@ -293,7 +293,7 @@ export const importarDeCSV = (arquivo) => {
         try {
           const registrosImportados = results.data.map((linha) => ({
             id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-            urb: linha['URB'] || linha['urb'] || '',
+            urb: linha['URG'] || linha['urb'] || '',
             localidade: linha['Localidade'] || linha['localidade'] || '',
             endereco: linha['Endereço'] || linha['Endereco'] || linha['endereco'] || '',
             caesMacho: parseInt(linha['Cães Macho'] || linha['CAES_M'] || 0),

@@ -357,7 +357,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
             {/* URB */}
             <div className="form-group">
               <label htmlFor="urb" className="label label-required">
-                URB (Unidade de Registro Básico)
+                    URG (Unidade de Registro Geográfico)
               </label>
               <input
                 type="text"
@@ -367,7 +367,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
                 onChange={handleChange}
                 onBlur={() => handleBlur("urb")}
                 className={`input ${erros.urb && tocado.urb ? "input-error" : ""}`}
-                placeholder="Ex: URB-001"
+                placeholder="Ex: URG-001"
                 maxLength={50}
               />
               {erros.urb && tocado.urb && (

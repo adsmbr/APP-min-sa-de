@@ -329,7 +329,7 @@ const useStore = create(
         const dadosExemplo = [
           {
             id: '1',
-            urb: 'URB-001',
+            urb: 'URG-001',
             localidade: 'Centro',
             endereco: 'Rua da Conceição, 123',
             caesMacho: 2,
@@ -345,7 +345,7 @@ const useStore = create(
           },
           {
             id: '2',
-            urb: 'URB-002',
+            urb: 'URG-002',
             localidade: 'Comércio',
             endereco: 'Av. Nilo Peçanha, 456',
             caesMacho: 1,
@@ -361,7 +361,7 @@ const useStore = create(
           },
           {
             id: '3',
-            urb: 'URB-003',
+            urb: 'URG-003',
             localidade: 'Posse',
             endereco: 'Rua Irmã Beata, 789',
             caesMacho: 3,
@@ -377,7 +377,7 @@ const useStore = create(
           },
           {
             id: '4',
-            urb: 'URB-004',
+            urb: 'URG-004',
             localidade: 'Centro',
             endereco: 'Rua Coronel Bernardino de Melo, 321',
             caesMacho: 0,
@@ -393,7 +393,7 @@ const useStore = create(
           },
           {
             id: '5',
-            urb: 'URB-005',
+            urb: 'URG-005',
             localidade: 'Comércio',
             endereco: 'Rua Ataíde Pimenta de Morais, 654',
             caesMacho: 2,
