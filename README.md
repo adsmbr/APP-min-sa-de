@@ -2,11 +2,13 @@
 
 ## Nova Iguaçu/RJ
 
-Sistema web completo para coleta, análise e visualização de dados sobre distribuição espacial de cães e gatos no município de Nova Iguaçu, Rio de Janeiro. Desenvolvido para uso em pesquisas veterinárias e estudos epidemiológicos.
+Sistema web completo para coleta, análise e visualização de dados sobre distribuição espacial de cães e gatos no município de Nova Iguaçu, Rio de Janeiro. Desenvolvido para uso em pesquisas veterinárias e estudos epidemiológicos com **sistema de autenticação multi-usuário** e **banco de dados em nuvem**.
 
 ![Status](https://img.shields.io/badge/status-active-success.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Database](https://img.shields.io/badge/database-Supabase-green.svg)
+![Auth](https://img.shields.io/badge/auth-multi--user-orange.svg)
 
 ---
 
@@ -30,23 +32,56 @@ Sistema web completo para coleta, análise e visualização de dados sobre distr
 
 Este sistema foi desenvolvido para auxiliar pesquisadores na coleta estruturada de dados de campo sobre a população de cães e gatos em Nova Iguaçu. A aplicação oferece:
 
+- **🔐 Sistema de autenticação multi-usuário** com controle de acesso
+- **☁️ Banco de dados em nuvem** (Supabase PostgreSQL)
+- **👥 Colaboração em tempo real** entre pesquisadores
+- **🔒 Controle de permissões** por função (Admin/Funcionário)
 - Interface responsiva otimizada para uso móvel em campo
 - Validação robusta de dados
-- Armazenamento local com backup em nuvem
+- Backup automático em nuvem
 - Visualização geográfica em mapas interativos
 - Análises estatísticas e gráficos
 - Múltiplos formatos de exportação
 
 ### Casos de Uso
 
-- **Pesquisas Veterinárias**: Mapeamento de população animal
-- **Estudos Epidemiológicos**: Análise de distribuição espacial
-- **Planejamento de Saúde Pública**: Densidade animal por região
-- **Campanhas de Vacinação**: Identificação de áreas prioritárias
+- **Pesquisas Veterinárias**: Mapeamento colaborativo de população animal
+- **Estudos Epidemiológicos**: Análise de distribuição espacial com múltiplos pesquisadores
+- **Planejamento de Saúde Pública**: Densidade animal por região com dados centralizados
+- **Campanhas de Vacinação**: Identificação de áreas prioritárias com histórico completo
+
+### 🆕 Novidades da Versão 2.0
+
+- ✅ **Sistema de Login/Registro** completo
+- ✅ **Banco de dados Supabase** (PostgreSQL na nuvem)
+- ✅ **Dados compartilhados** entre todos os usuários
+- ✅ **Controle de acesso** por função (Admin/Funcionário)
+- ✅ **Backup automático** na nuvem
+- ✅ **Auditoria completa** (quem criou, quando modificou)
+- ✅ **Segurança avançada** (RLS + Políticas de acesso)
+- ✅ **Sincronização em tempo real** (opcional)
 
 ---
 
 ## ✨ Funcionalidades
+
+### 🔐 Sistema de Autenticação
+
+- ✅ **Login/Registro** com email e senha
+- ✅ **Controle de acesso** por função (Admin/Funcionário)
+- ✅ **Recuperação de senha** via email
+- ✅ **Sessão persistente** (mantém login)
+- ✅ **Logout seguro** com limpeza de sessão
+- ✅ **Validação de email** (configurável)
+
+### 👥 Controle de Usuários
+
+- ✅ **Perfis de usuário** com informações completas
+- ✅ **Funções diferenciadas**:
+  - **Admin**: Acesso total (criar, editar, excluir, exportar)
+  - **Funcionário**: Acesso limitado (criar, editar próprios registros)
+- ✅ **Badge visual** da função no header
+- ✅ **Auditoria completa** (quem criou/modificou cada registro)
 
 ### 📝 Formulário de Registro
 
@@ -57,6 +92,7 @@ Este sistema foi desenvolvido para auxiliar pesquisadores na coleta estruturada 
 - ✅ Captura automática de coordenadas GPS
 - ✅ Campos obrigatórios claramente indicados
 - ✅ Mensagens de erro contextuais em português
+- ✅ **Salvamento automático** na nuvem
 
 ### 📊 Dashboard Interativo
 
@@ -73,9 +109,11 @@ Este sistema foi desenvolvido para auxiliar pesquisadores na coleta estruturada 
 - ✅ Busca global em múltiplos campos
 - ✅ Filtros avançados (localidade, data, tipo de animal)
 - ✅ Ordenação por qualquer coluna
-- ✅ Ações: Editar, Duplicar, Excluir
+- ✅ Ações: Editar, Duplicar, Excluir (conforme permissão)
 - ✅ View responsivo com cards para mobile
 - ✅ Confirmação de exclusão com preview
+- ✅ **Dados sincronizados** entre todos os usuários
+- ✅ **Indicador de autor** em cada registro
 
 ### 🗺️ Análises Geoespaciais
 
@@ -114,6 +152,13 @@ Este sistema foi desenvolvido para auxiliar pesquisadores na coleta estruturada 
 - **LocalStorage** - Persistência de dados
 - **date-fns** - Manipulação de datas
 
+### Banco de Dados & Backend
+
+- **Supabase** - Backend-as-a-Service (PostgreSQL)
+- **PostgreSQL** - Banco de dados relacional
+- **Row Level Security (RLS)** - Segurança a nível de linha
+- **Real-time subscriptions** - Atualizações em tempo real
+
 ### Visualizações
 
 - **Recharts** - Gráficos e estatísticas
@@ -127,36 +172,61 @@ Este sistema foi desenvolvido para auxiliar pesquisadores na coleta estruturada 
 
 ---
 
-## 📦 Instalação
+## 🚀 Instalação e Configuração
 
 ### Pré-requisitos
 
-- Node.js 16+ instalado
+- Node.js 18+ instalado
 - npm ou yarn
+- Conta no [Supabase](https://supabase.com) (gratuita)
 
-### Passo a Passo
-
-1. **Clone ou baixe o repositório**
+### 1. Clone o repositório
 
 ```bash
-cd "APP min saúde"
+git clone [URL_DO_REPOSITORIO]
+cd sistema-registro-animais
 ```
 
-2. **Instale as dependências**
+### 2. Instale as dependências
 
 ```bash
 npm install
 ```
 
-3. **Inicie o servidor de desenvolvimento**
+### 3. Configure o Supabase
+
+1. Crie um projeto no [Supabase](https://supabase.com)
+2. Copie o arquivo de exemplo:
+   ```bash
+   cp .env.example .env
+   ```
+3. Configure as variáveis no arquivo `.env`:
+   ```env
+   VITE_SUPABASE_URL=sua_url_do_supabase
+   VITE_SUPABASE_ANON_KEY=sua_chave_anonima
+   VITE_APP_NAME=Sistema de Registro de Animais
+   VITE_APP_ENV=development
+   ```
+
+### 4. Configure o banco de dados
+
+Execute o script SQL fornecido no Supabase:
+- Acesse: Projeto → SQL Editor
+- Execute o conteúdo de `supabase-schema.sql`
+
+### 5. Execute o projeto
 
 ```bash
 npm run dev
 ```
 
-4. **Abra no navegador**
+O sistema estará disponível em `http://localhost:5173`
 
-O sistema abrirá automaticamente em `http://localhost:3000`
+### 6. Primeiro acesso
+
+1. Registre-se com seu email
+2. O primeiro usuário será automaticamente Admin
+3. Usuários subsequentes serão Funcionários por padrão
 
 ### Build para Produção
 
@@ -289,12 +359,32 @@ Interface otimizada para:
 
 ---
 
-## 🔒 Privacidade e Segurança
+## 🔒 Segurança e Privacidade
 
-- **Dados locais**: Tudo é armazenado apenas no navegador do usuário
-- **Sem servidor**: Nenhum dado é enviado para servidores externos
-- **Sem rastreamento**: Não há analytics ou cookies de terceiros
-- **Backup manual**: O usuário controla quando e onde exportar os dados
+### Proteção de Dados
+
+- ✅ **Criptografia em trânsito** (HTTPS/TLS)
+- ✅ **Criptografia em repouso** (Supabase)
+- ✅ **Row Level Security (RLS)** - Usuários só veem seus dados
+- ✅ **Políticas de acesso** por função
+- ✅ **Validação server-side** de todas as operações
+- ✅ **Sanitização de inputs** contra XSS/SQL Injection
+- ✅ **Sessões seguras** com JWT tokens
+- ✅ **Rate limiting** automático (Supabase)
+
+### Controle de Acesso
+
+- **Admin**: Acesso total a todos os registros
+- **Funcionário**: Acesso apenas aos próprios registros
+- **Auditoria**: Rastreamento completo de ações
+- **Backup**: Dados seguros na nuvem Supabase
+
+### Conformidade
+
+- Dados armazenados em conformidade com LGPD
+- Backup automático e redundante
+- Logs de auditoria completos
+- Possibilidade de exportação/exclusão de dados
 
 ---
 
@@ -383,18 +473,31 @@ Para dúvidas, sugestões ou suporte:
 
 ## 🎯 Roadmap Futuro
 
-Funcionalidades planejadas:
+### 🔄 Próximas Versões
 
-- [ ] Sincronização com Google Drive
-- [ ] Sincronização com Dropbox
-- [ ] Captura de fotos dos locais
-- [ ] Modo wizard (formulário em etapas)
-- [ ] Impressão de relatórios
-- [ ] Autenticação multi-usuário
-- [ ] Histórico de alterações
-- [ ] Notificações push
-- [ ] PWA (Progressive Web App)
-- [ ] Aplicativo mobile nativo
+#### v2.1 - Melhorias de UX
+- [ ] **Notificações push** para novos registros
+- [ ] **Modo offline** com sincronização automática
+- [ ] **Temas personalizáveis** (claro/escuro)
+- [ ] **Atalhos de teclado** para ações rápidas
+
+#### v2.2 - Análises Avançadas
+- [ ] **Dashboard em tempo real** com WebSockets
+- [ ] **Relatórios automatizados** por email
+- [ ] **Alertas inteligentes** para anomalias
+- [ ] **Integração com APIs** de geolocalização
+
+#### v2.3 - Colaboração
+- [ ] **Comentários** em registros
+- [ ] **Sistema de aprovação** para edições
+- [ ] **Histórico de versões** detalhado
+- [ ] **Notificações** de atividade da equipe
+
+#### v3.0 - Expansão
+- [ ] **API pública** para integrações
+- [ ] **App mobile nativo** (React Native)
+- [ ] **Múltiplos projetos** por organização
+- [ ] **Importação** de dados externos
 
 ---
 
