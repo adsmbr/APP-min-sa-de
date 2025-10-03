@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [retryCount, setRetryCount] = useState(0);
 
   // Buscar perfil do usuário
   const fetchProfile = async (userId) => {
@@ -21,245 +20,154 @@ export const AuthProvider = ({ children }) => {
       logger.debug("👤 [PROFILE] Buscando perfil para userId:", userId);
       const profileData = await getUserProfile(userId);
       logger.debug("👤 [PROFILE] Dados do perfil recebidos:", profileData);
-      logger.debug("👤 [PROFILE] Role do usuário:", profileData?.role);
       
-      // Debug adicional para verificar o role
       if (profileData) {
-        logger.debug("🔍 [DEBUG] Perfil completo:", JSON.stringify(profileData, null, 2));
-        logger.debug("🔍 [DEBUG] Email do usuário:", profileData.email);
-        logger.debug("🔍 [DEBUG] Role detectado:", profileData.role);
-        logger.debug("🔍 [DEBUG] É admin?", profileData.role === 'admin');
-        logger.debug("🔍 [DEBUG] É funcionário?", profileData.role === 'funcionario');
-      } else {
-        logger.warn("⚠️ [DEBUG] Perfil não encontrado ou nulo!");
+        logger.info("👤 [PROFILE] Perfil do usuário carregado:", { email: profileData.email, role: profileData.role });
+        setProfile(profileData);
+        return profileData;
       }
-      
-      setProfile(profileData);
-      return profileData;
+
+      // Se não houver perfil, o usuário pode existir na autenticação, mas não na tabela de perfis.
+      // Vamos criar um perfil para eles para garantir que o aplicativo funcione.
+      logger.warn(`⚠️ [PROFILE] Perfil não encontrado para o userId: ${userId}. Criando um novo.`);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        logger.error("❌ [PROFILE] Não é possível criar o perfil, nenhum usuário autenticado encontrado.");
+        return null;
+      }
+
+      // O papel padrão para novos perfis é 'funcionario'.
+      // Os scripts SQL são responsáveis por elevar usuários específicos para 'admin'.
+      let newRole = 'funcionario';
+      let newName = user.email; // Nome padrão para o e-mail
+
+      // --- Correção de dados temporária para usuário admin específico ---
+      // Isso garante que a conta de administrador principal tenha o papel correto se estiver ausente.
+      // Em um ambiente de produção, isso idealmente seria tratado por um script de banco de dados único.
+      if (user.email === 'simeimontijo@gmail.com') {
+          logger.info("✨ [PROFILE] Usuário admin específico 'simeimontijo@gmail.com' detectado. Definindo o papel como 'admin'.");
+          newRole = 'admin';
+          newName = 'Simei Moraes Montijo';
+      }
+      // --- Fim da correção temporária ---
+
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert({ id: user.id, email: user.email, role: newRole, nome: newName })
+        .select()
+        .single();
+
+      if (createError) {
+        // É possível que o perfil tenha sido criado em uma condição de corrida. Tente buscá-lo novamente.
+        if (createError.code === '23505') { // Violação de unicidade
+            logger.warn("⚠️ [PROFILE] A criação do perfil falhou devido a uma condição de corrida. Buscando novamente.");
+            return await getUserProfile(userId);
+        }
+        logger.error("❌ [PROFILE] Erro ao criar novo perfil:", createError);
+        throw createError;
+      }
+
+      logger.info(`✅ [PROFILE] Novo perfil criado para ${user.email} com o papel '${newRole}'.`);
+      setProfile(newProfile);
+      return newProfile;
     } catch (error) {
-      logger.error("❌ [PROFILE] Erro ao buscar perfil:", error);
+      logger.error("❌ [PROFILE] Erro ao buscar ou criar perfil:", error);
+      setProfile(null); // Limpar perfil em caso de erro
       return null;
     }
   };
 
-  // Carregar sessão inicial
+  // Efeito para gerenciar o estado de autenticação
   useEffect(() => {
-    let mounted = true;
-    let authSubscription;
-    let retryCount = 0;
-    let loadingTimeoutId;
-    const maxRetries = 2; // Reduzido de 3 para 2
+    setLoading(true);
+    logger.debug("🔐 [AUTH] Iniciando verificação de sessão...");
 
-    // Garantir que o loading não fique infinito
-    loadingTimeoutId = setTimeout(() => {
-      if (mounted && loading) {
-        logger.warn("⚠️ Timeout de carregamento atingido. Forçando saída do estado de loading.");
-        setLoading(false);
+    // 1. Obter a sessão inicial
+    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
+      if (initialSession) {
+        logger.debug("✅ [AUTH] Sessão inicial encontrada.", { userId: initialSession.user.id });
+        setSession(initialSession);
+        setUser(initialSession.user);
+        await fetchProfile(initialSession.user.id);
+      } else {
+        logger.debug("ℹ️ [AUTH] Nenhuma sessão inicial encontrada.");
       }
-    }, 10000); // 10 segundos máximo de loading
+      // Não definimos loading false aqui, deixamos o listener fazer isso
+    }).catch(error => {
+      logger.error("❌ [AUTH] Erro ao obter sessão inicial:", error);
+    });
 
-    const initializeAuth = async () => {
-      try {
-        logger.debug("🔐 Inicializando autenticação...");
-        logger.debug("🌐 URL Supabase:", import.meta.env.VITE_SUPABASE_URL);
-        logger.debug("🔑 Chave configurada:", import.meta.env.VITE_SUPABASE_ANON_KEY ? "✅ Sim" : "❌ Não");
-        logger.debug("🔄 Tentativa:", retryCount + 1, "de", maxRetries);
-        logger.debug("📡 Tentando obter sessão do Supabase...");
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          logger.error("❌ Erro ao obter sessão:", sessionError);
-          logger.error("🔍 Tipo do erro:", sessionError.name);
-          logger.error("📝 Mensagem do erro:", sessionError.message);
-          
-          // Se estiver offline de fato, sinalizar e aguardar eventos de rede
-          if (!navigator.onLine) {
-            logger.warn("⚠️ Dispositivo offline detectado. Aguardando reconexão...");
-            if (mounted) {
-              setIsOffline(true);
-              setLoading(false);
-            }
-            return;
-          }
-
-          // Implementar retry apenas para erros de rede específicos
-          if (retryCount < maxRetries && 
-              (sessionError.message?.includes('fetch') || 
-               sessionError.message?.includes('network') || 
-               sessionError.message?.includes('Failed to fetch'))) {
-            const retryDelay = 3000; // Delay fixo de 3s
-            logger.debug(`🔄 Erro de rede detectado, tentando reconectar em ${retryDelay/1000}s...`);
-            retryCount++;
-            setTimeout(() => {
-              if (mounted) {
-                initializeAuth();
-              }
-            }, retryDelay);
-            return;
-          }
-          
-          // Se esgotaram as tentativas, continuar sem sessão
-          logger.warn("⚠️ Continuando sem sessão ativa (modo offline)");
-          if (mounted) {
-            setLoading(false);
-            setIsOffline(true);
-          }
-          return;
-        }
-
-        // Reset retry count em caso de sucesso
-        retryCount = 0;
-        setIsOffline(false);
-
-        if (!mounted) return;
-
-        if (sessionData?.session?.user) {
-          logger.debug("✅ Sessão encontrada");
-          setUser(sessionData.session.user);
-          setSession(sessionData.session);
-
-          try {
-            await fetchProfile(sessionData.session.user.id);
-          } catch (err) {
-            logger.error("❌ Erro ao buscar perfil:", err);
-          }
-        } else {
-          logger.debug("ℹ️ Nenhuma sessão ativa encontrada");
-        }
-
-        logger.debug("✅ Loading concluído");
-        if (mounted) setLoading(false);
-      } catch (error) {
-        logger.error("❌ Erro ao inicializar autenticação:", error);
-        logger.error("🔍 Stack trace:", error.stack);
+    // 2. Escutar por mudanças no estado de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        logger.debug(`🔄 [AUTH] Evento de autenticação: ${event}`);
         
-        // Implementar retry com backoff exponencial para erros de conexão
-        if (retryCount < maxRetries && 
-            (error.message?.includes('Timeout') || 
-             error.message?.includes('fetch') || 
-             error.message?.includes('network') ||
-             error.message?.includes('Failed to fetch') ||
-             error.name === 'TypeError' ||
-             error.name === 'AbortError')) {
-          
-          const retryDelay = Math.min(2000 * Math.pow(2, retryCount), 10000);
-          logger.debug(`🔄 Erro de conexão detectado, tentando novamente em ${retryDelay/1000}s...`);
-          retryCount++;
-          
-          setTimeout(() => {
-            if (mounted) {
-              logger.debug("🔄 Executando nova tentativa de conexão...");
-              initializeAuth();
-            }
-          }, retryDelay);
-          return;
+        if (event === 'SIGNED_IN') {
+          logger.debug("✅ [AUTH] Usuário entrou (SIGNED_IN).", { userId: session.user.id });
+          setSession(session);
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          logger.debug("🚪 [AUTH] Usuário saiu (SIGNED_OUT).");
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+        } else if (event === 'TOKEN_REFRESHED') {
+          logger.debug("🔄 [AUTH] Token da sessão atualizado.");
+          setSession(session);
+          setUser(session.user); // Garante que o usuário está atualizado
+        } else if (event === 'INITIAL_SESSION') {
+            logger.debug("ℹ️ [AUTH] Sessão inicial processada pelo listener.");
+            // Se a sessão existe, os dados já foram setados pelo getSession() ou serão pelo SIGNED_IN
+            // Apenas garantimos que o loading termine.
         }
-        
-        logger.error("🛑 Erro não recuperável ou máximo de tentativas atingido");
-        if (mounted) {
-          logger.debug("🛑 Parando loading devido ao erro");
+
+        // Finaliza o estado de carregamento após o primeiro evento ser processado
+        if (loading) {
           setLoading(false);
+          logger.debug("✅ [AUTH] Estado de carregamento finalizado.");
         }
       }
-    };
+    );
 
-    // Inicializar autenticação
-    initializeAuth();
-
-    // Listeners de rede para manter estado offline/online e reprocessar sessão
+    // Funções para lidar com o status online/offline
     const handleOnline = () => {
-      logger.info("📶 Conexão restaurada (online)");
+      logger.info("📶 Conexão restaurada (online).");
       setIsOffline(false);
-      initializeAuth();
     };
     const handleOffline = () => {
-      logger.warn("📵 Conexão perdida (offline)");
+      logger.warn("📵 Conexão perdida (offline).");
       setIsOffline(true);
     };
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Listener para mudanças de autenticação (configurado apenas uma vez)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logger.debug("🔄 Auth state changed:", event, session?.user?.id);
-
-      if (!mounted) return;
-
-      // Processar SIGNED_OUT para limpeza
-      if (event === 'SIGNED_OUT') {
-        logger.debug("🚪 Sessão encerrada via listener");
-        setUser(null);
-        setProfile(null);
-        setSession(null);
-        setLoading(false); // Importante: parar o loading após logout
-        return;
-      }
-
-      // Processar SIGNED_IN para atualizar o usuário após login
-      if (event === 'SIGNED_IN' && session?.user) {
-        logger.debug("🔑 Usuário logado via listener");
-        setUser(session.user);
-        setSession(session);
-        try {
-          await fetchProfile(session.user.id);
-        } catch (err) {
-          logger.warn("⚠️ Erro ao buscar perfil após login:", err);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Processar TOKEN_REFRESHED para manter a sessão
-      if (event === 'TOKEN_REFRESHED' && session?.user) {
-        logger.debug("🔄 Token renovado");
-        setUser(session.user);
-        setSession(session);
-        return;
-      }
-
-      // Ignorar outros eventos
-      logger.debug("🔄 Ignorando evento:", event);
-    });
-
-    authSubscription = subscription;
-
+    // Limpeza ao desmontar o componente
     return () => {
-      mounted = false;
+      subscription.unsubscribe();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      if (loadingTimeoutId) {
-        clearTimeout(loadingTimeoutId);
-      }
-      if (authSubscription) {
-        authSubscription.unsubscribe();
-      }
+      logger.debug("🛑 [AUTH] Listener de autenticação removido.");
     };
-  }, []); // Dependências vazias para executar apenas uma vez
+  }, []);
 
-    // Função de login
+  // Função de login
   const login = async (email, password) => {
     try {
       logger.debug("🔐 Tentando fazer login...");
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
-
-      if (data.user) {
-        logger.debug("✅ Login bem-sucedido");
-        setUser(data.user);
-        await fetchProfile(data.user.id);
-        return { success: true, user: data.user };
-      }
-
-      return { success: false, error: "Dados de login inválidos" };
+      // O listener onAuthStateChange cuidará de atualizar o estado
+      logger.debug("✅ Login bem-sucedido via API. Aguardando listener...");
+      return { success: true, user: data.user };
     } catch (error) {
-      logger.error("Erro no login:", error);
+      logger.error("❌ Erro no login:", error.message);
       return { success: false, error: error.message };
     }
   };
@@ -268,7 +176,6 @@ export const AuthProvider = ({ children }) => {
   const register = async (email, password, userData) => {
     try {
       logger.debug("📝 Tentando registrar novo usuário...");
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -281,102 +188,45 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (error) throw error;
-
-      if (data.user) {
-        logger.debug("✅ Usuário registrado, criando perfil...");
-
-        // Criar perfil na tabela profiles
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .insert([
-            {
-              id: data.user.id,
-              nome: userData.nome,
-              email: email,
-              role: userData.role || "funcionario",
-            },
-          ]);
-
-        if (profileError) {
-          logger.error("❌ Erro ao criar perfil:", profileError);
-          throw profileError;
-        }
-        logger.debug("✅ Perfil criado com sucesso");
-
-        return { success: true, user: data.user };
-      }
-
-      return { success: false, error: "Erro ao criar usuário" };
+      // O listener onAuthStateChange cuidará de atualizar o estado após o email de confirmação (se houver)
+      logger.debug("✅ Usuário registrado com sucesso via API.");
+      return { success: true, user: data.user };
     } catch (error) {
-      logger.error("Erro no registro:", error);
+      logger.error("❌ Erro no registro:", error);
       return { success: false, error: error.message };
     }
   };
 
   // Função de logout
   const logout = async () => {
+    logger.debug("🚪 [LOGOUT] Iniciando processo de logout...");
     try {
-      logger.debug("🚪 [LOGOUT] Iniciando processo de logout...");
-      logger.debug("🚪 [LOGOUT] Estado atual - User:", !!user, "Profile:", !!profile);
-      
-      // Primeiro limpar o estado local para feedback imediato
-      setLoading(true);
-      
-      // Limpar estados imediatamente para garantir desconexão visual
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      // O listener onAuthStateChange cuidará de limpar o estado
+      logger.debug("✅ [LOGOUT] Chamada de signOut bem-sucedida. Aguardando listener...");
+      return { success: true };
+    } catch (error) {
+      logger.error("❌ [LOGOUT] Erro ao fazer logout:", error.message);
+      // Forçar limpeza local em caso de erro de rede no signOut
+      setSession(null);
       setUser(null);
       setProfile(null);
-      setSession(null);
-      
-      logger.debug("🚪 [LOGOUT] Chamando signOut do Supabase...");
-      const result = await signOut();
-      
-      logger.debug("🚪 [LOGOUT] Resultado do signOut:", result);
-      
-      if (result.success) {
-        logger.debug("🚪 [LOGOUT] SignOut bem-sucedido, limpeza local concluída");
-        setLoading(false); // Garantir que loading seja desativado
-        logger.debug("✅ [LOGOUT] Logout realizado com sucesso");
-        return { success: true };
-      } else {
-        logger.error("❌ [LOGOUT] Erro no signOut:", result.error);
-        setLoading(false); // Restaurar loading em caso de erro
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      logger.error("❌ [LOGOUT] Erro no logout:", error);
-      setLoading(false); // Restaurar loading em caso de erro
       return { success: false, error: error.message };
     }
   };
 
-  // Verificar se é admin
-  const isAdmin = () => {
-    return profile?.role === "admin";
-  };
-
-  // Verificar se é funcionário
-  const isFuncionario = () => {
-    return profile?.role === "funcionario";
-  };
-
-  // Verificar se pode editar registro
-  const canEdit = (registroCriadoPor) => {
-    // Admin pode editar tudo
-    if (isAdmin()) return true;
-    // Funcionário só pode editar próprios registros
-    return registroCriadoPor === user?.id;
-  };
-
-  // Verificar se pode excluir registro
-  const canDelete = (_registroCriadoPor) => {
-    // Apenas admin pode excluir
-    return isAdmin();
-  };
+  // Funções de verificação de permissão
+  const isAdmin = () => profile?.role === "admin";
+  const isFuncionario = () => profile?.role === "funcionario";
+  const canEdit = (registroCriadoPor) => isAdmin() || registroCriadoPor === user?.id;
+  const canDelete = (_registroCriadoPor) => isAdmin();
 
   // Atualizar perfil
   const updateProfile = async (updates) => {
     if (!user) return { success: false, error: "Usuário não autenticado" };
-
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -386,47 +236,12 @@ export const AuthProvider = ({ children }) => {
         .single();
 
       if (error) throw error;
-
-      setProfile(data);
+      setProfile(data); // Atualiza o perfil localmente
+      logger.debug("✅ Perfil atualizado com sucesso.");
       return { success: true, data };
     } catch (error) {
-      console.error("Erro ao atualizar perfil:", error);
+      logger.error("❌ Erro ao atualizar perfil:", error);
       return { success: false, error: error.message };
-    }
-  };
-
-  // Função para tentar reconectar
-  const handleRetryConnection = async () => {
-    logger.debug("🔄 Tentando reconectar...");
-    // Se continuar offline segundo o navegador, apenas aguarde evento 'online'
-    if (!navigator.onLine) {
-      logger.warn("📵 Ainda sem conexão segundo o navegador. Aguardando reconexão...");
-      setIsOffline(true);
-      return;
-    }
-    setIsOffline(false);
-    setLoading(true);
-    setRetryCount(0);
-    
-    // Aguardar um pouco antes de tentar reconectar
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Tentar inicializar autenticação novamente
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        throw error;
-      }
-      if (session) {
-        setSession(session);
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    } catch (error) {
-      logger.error("❌ Falha na reconexão:", error.message);
-      setIsOffline(true);
-      setLoading(false);
     }
   };
 
@@ -434,7 +249,7 @@ export const AuthProvider = ({ children }) => {
   if (isOffline) {
     return (
       <OfflineMode 
-        onRetry={handleRetryConnection}
+        onRetry={() => window.location.reload()} // Simplesmente recarregar a página ao tentar novamente
         isRetrying={loading}
       />
     );
@@ -462,7 +277,7 @@ export const AuthProvider = ({ children }) => {
 };
 
 // Hook customizado para usar o contexto
-const useAuth = () => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth deve ser usado dentro de um AuthProvider");
@@ -470,5 +285,4 @@ const useAuth = () => {
   return context;
 };
 
-export { useAuth };
 export default AuthProvider;
