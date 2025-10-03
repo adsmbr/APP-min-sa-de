@@ -317,6 +317,7 @@ const TabelaRegistros = ({ onEdit }) => {
                   <th className="text-center">🐕 Cães</th>
                   <th className="text-center">🐈 Gatos</th>
                   <th className="text-center">Total</th>
+                  <th className="text-center">💉 Vacinado</th>
                   <th>
                     <button
                       onClick={() => handleOrdenacao("data")}
@@ -363,6 +364,29 @@ const TabelaRegistros = ({ onEdit }) => {
                         <span className="badge badge-primary">
                           {totalAnimais}
                         </span>
+                      </td>
+                      <td className="text-center">
+                        {(() => {
+                          const totalVacinados = (registro.caesMachoVacinados || 0) + 
+                                                (registro.caesFemeaVacinadas || 0) + 
+                                                (registro.gatosMachoVacinados || 0) + 
+                                                (registro.gatosFemeaVacinadas || 0);
+                          const percentual = totalAnimais > 0 ? Math.round((totalVacinados / totalAnimais) * 100) : 0;
+                          
+                          return (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className={`badge ${
+                                percentual === 100 ? 'badge-success' : 
+                                percentual > 0 ? 'badge-warning' : 'badge-error'
+                              }`}>
+                                {totalVacinados}/{totalAnimais}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {percentual}%
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td>{formatarData(registro.data)}</td>
                       <td className="max-w-xs truncate" title={registro.tutor}>
@@ -471,6 +495,62 @@ const TabelaRegistros = ({ onEdit }) => {
                         <span className="text-gray-600">
                           {registro.telefone}
                         </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                          💉 Status de Vacinação
+                        </div>
+                        
+                        {(() => {
+                          const totalVacinados = (registro.caesMachoVacinados || 0) + 
+                                                (registro.caesFemeaVacinadas || 0) + 
+                                                (registro.gatosMachoVacinados || 0) + 
+                                                (registro.gatosFemeaVacinadas || 0);
+                          const percentual = totalAnimais > 0 ? Math.round((totalVacinados / totalAnimais) * 100) : 0;
+                          
+                          return (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Total Vacinados:</span>
+                                <span className={`font-bold ${
+                                  percentual === 100 ? 'text-green-600' : 
+                                  percentual > 0 ? 'text-yellow-600' : 'text-red-600'
+                                }`}>
+                                  {totalVacinados}/{totalAnimais} ({percentual}%)
+                                </span>
+                              </div>
+                              
+                              {/* Detalhamento por categoria */}
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                {registro.caesMacho > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>🐕♂️ Cães M:</span>
+                                    <span>{registro.caesMachoVacinados || 0}/{registro.caesMacho}</span>
+                                  </div>
+                                )}
+                                {registro.caesFemea > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>🐕♀️ Cães F:</span>
+                                    <span>{registro.caesFemeaVacinadas || 0}/{registro.caesFemea}</span>
+                                  </div>
+                                )}
+                                {registro.gatosMacho > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>🐈♂️ Gatos M:</span>
+                                    <span>{registro.gatosMachoVacinados || 0}/{registro.gatosMacho}</span>
+                                  </div>
+                                )}
+                                {registro.gatosFemea > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>🐈♀️ Gatos F:</span>
+                                    <span>{registro.gatosFemeaVacinadas || 0}/{registro.gatosFemea}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className="flex items-center gap-2">

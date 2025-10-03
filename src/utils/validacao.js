@@ -244,6 +244,41 @@ export const validarFormularioRegistro = (dados) => {
     erros.telefone = 'Telefone inválido. Use o formato (XX) XXXXX-XXXX';
   }
 
+
+
+  // Validar números de animais vacinados
+  if (dados.caesMacho > 0) {
+    if (!validarNumeroPositivo(dados.caesMachoVacinados)) {
+      erros.caesMachoVacinados = 'Número inválido';
+    } else if (dados.caesMachoVacinados > dados.caesMacho) {
+      erros.caesMachoVacinados = 'Não pode exceder o total de cães machos';
+    }
+  }
+
+  if (dados.caesFemea > 0) {
+    if (!validarNumeroPositivo(dados.caesFemeaVacinadas)) {
+      erros.caesFemeaVacinadas = 'Número inválido';
+    } else if (dados.caesFemeaVacinadas > dados.caesFemea) {
+      erros.caesFemeaVacinadas = 'Não pode exceder o total de cães fêmeas';
+    }
+  }
+
+  if (dados.gatosMacho > 0) {
+    if (!validarNumeroPositivo(dados.gatosMachoVacinados)) {
+      erros.gatosMachoVacinados = 'Número inválido';
+    } else if (dados.gatosMachoVacinados > dados.gatosMacho) {
+      erros.gatosMachoVacinados = 'Não pode exceder o total de gatos machos';
+    }
+  }
+
+  if (dados.gatosFemea > 0) {
+    if (!validarNumeroPositivo(dados.gatosFemeaVacinadas)) {
+      erros.gatosFemeaVacinadas = 'Número inválido';
+    } else if (dados.gatosFemeaVacinadas > dados.gatosFemea) {
+      erros.gatosFemeaVacinadas = 'Não pode exceder o total de gatos fêmeas';
+    }
+  }
+
   return {
     valido: Object.keys(erros).length === 0,
     erros,

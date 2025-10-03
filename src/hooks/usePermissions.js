@@ -20,12 +20,25 @@ const usePermissions = () => {
     }
     const role = profile.role || 'funcionario';
     logger.debug("🔍 [PERMISSIONS] Role determinado:", role, "Profile:", profile);
+    
+    // Debug adicional
+    logger.debug("🔍 [PERMISSIONS] Profile completo:", JSON.stringify(profile, null, 2));
+    logger.debug("🔍 [PERMISSIONS] Email do profile:", profile.email);
+    logger.debug("🔍 [PERMISSIONS] Role original:", profile.role);
+    logger.debug("🔍 [PERMISSIONS] Role final:", role);
+    
     return role;
   }, [profile]);
 
   // Verificar se o usuário é admin
   const isAdmin = useMemo(() => {
-    return userRole === 'admin';
+    const adminStatus = userRole === 'admin';
+    logger.debug("🔍 [PERMISSIONS] Verificação isAdmin:", {
+      userRole,
+      isAdmin: adminStatus,
+      profile: profile ? { email: profile.email, role: profile.role } : null
+    });
+    return adminStatus;
   }, [userRole]);
 
   // Verificar se o usuário é funcionário
@@ -85,22 +98,22 @@ const usePermissions = () => {
   };
 
   // Obter rótulo amigável do role
-  const getRoleLabel = () => {
+  const getRoleLabel = useMemo(() => {
     const labels = {
       admin: 'Administrador',
       funcionario: 'Funcionário',
     };
     return labels[userRole] || 'Usuário';
-  };
+  }, [userRole]);
 
   // Obter cor do badge do role
-  const getRoleColor = () => {
+  const getRoleColor = useMemo(() => {
     const colors = {
       admin: 'bg-purple-100 text-purple-800 border-purple-300',
       funcionario: 'bg-blue-100 text-blue-800 border-blue-300',
     };
     return colors[userRole] || 'bg-gray-100 text-gray-800 border-gray-300';
-  };
+  }, [userRole]);
 
   // Verificar se o usuário tem permissão para acessar uma aba específica
   const canAccessTab = (tabId) => {

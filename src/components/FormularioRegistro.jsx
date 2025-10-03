@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   MapPin,
   Save,
@@ -47,6 +47,11 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     data: new Date().toISOString().split("T")[0],
     tutor: "",
     telefone: "",
+    // Campos de vacinação individual por categoria
+    caesMachoVacinados: 0,
+    caesFemeaVacinadas: 0,
+    gatosMachoVacinados: 0,
+    gatosFemeaVacinadas: 0,
   };
 
   const [formData, setFormData] = useState(estadoInicial);
@@ -71,7 +76,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
   }, [registroEditando]);
 
   // Validação em tempo real
-  useEffect(() => {
+  const validarFormularioCallback = useCallback(() => {
     if (Object.keys(tocado).length > 0) {
       const resultado = validarFormularioRegistro(formData);
       let errosAtuais = { ...resultado.erros };
@@ -108,8 +113,12 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     }
   }, [formData, tocado]);
 
-  // Verificar duplicatas quando endereço ou data mudam
   useEffect(() => {
+    validarFormularioCallback();
+  }, [validarFormularioCallback]);
+
+  // Verificar duplicatas quando endereço ou data mudam
+  const verificarDuplicataCallback = useCallback(() => {
     if (formData.endereco && formData.data && tocado.endereco) {
       const isDuplicata = verificarDuplicata(
         formData.endereco,
@@ -130,8 +139,12 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     formData.data,
     tocado.endereco,
     verificarDuplicata,
-    registroEditando,
+    registroEditando?.id,
   ]);
+
+  useEffect(() => {
+    verificarDuplicataCallback();
+  }, [verificarDuplicataCallback]);
 
   // Auto-complete para localidades
   useEffect(() => {
@@ -150,9 +163,18 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     let valorProcessado = value;
 
     // Processar números
-    if (["caesMacho", "caesFemea", "gatosMacho", "gatosFemea"].includes(name)) {
+    if (["caesMacho", "caesFemea", "gatosMacho", "gatosFemea", "caesMachoVacinados", "caesFemeaVacinadas", "gatosMachoVacinados", "gatosFemeaVacinadas"].includes(name)) {
       valorProcessado = parseInt(value) || 0;
       if (valorProcessado < 0) valorProcessado = 0;
+      
+      // Validar se vacinados não excedem o total
+      if (name.includes("Vacinado")) {
+        const categoria = name.replace("Vacinados", "").replace("Vacinadas", "");
+        const totalCategoria = formData[categoria] || 0;
+        if (valorProcessado > totalCategoria) {
+          valorProcessado = totalCategoria;
+        }
+      }
     }
 
     // Sanitizar strings (exceto endereço e tutor que precisam de espaços)
@@ -676,6 +698,151 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
               </p>
             )}
           </div>
+
+          {/* Campos de Vacinação Individual */}
+          {totalAnimais > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-md font-semibold text-gray-800 flex items-center gap-2">
+                💉 Quantidade de Animais Vacinados
+              </h4>
+              <p className="text-sm text-gray-600">
+                Informe quantos animais de cada categoria estão vacinados.
+              </p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Cães Macho Vacinados */}
+                {formData.caesMacho > 0 && (
+                  <div className="form-group">
+                    <label htmlFor="caesMachoVacinados" className="label">
+                      🐕💉 Cães Macho Vacinados
+                    </label>
+                    <input
+                      type="number"
+                      id="caesMachoVacinados"
+                      name="caesMachoVacinados"
+                      value={formData.caesMachoVacinados}
+                      onChange={handleChange}
+                      onBlur={() => handleBlur("caesMachoVacinados")}
+                      className={`input ${erros.caesMachoVacinados && tocado.caesMachoVacinados ? "input-error" : ""}`}
+                      min="0"
+                      max={formData.caesMacho}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Máx: {formData.caesMacho}
+                    </p>
+                    {erros.caesMachoVacinados && tocado.caesMachoVacinados && (
+                      <p className="error-message">
+                        <AlertCircle className="w-4 h-4" />
+                        {erros.caesMachoVacinados}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Cães Fêmea Vacinadas */}
+                {formData.caesFemea > 0 && (
+                  <div className="form-group">
+                    <label htmlFor="caesFemeaVacinadas" className="label">
+                      🐕💉 Cães Fêmea Vacinadas
+                    </label>
+                    <input
+                      type="number"
+                      id="caesFemeaVacinadas"
+                      name="caesFemeaVacinadas"
+                      value={formData.caesFemeaVacinadas}
+                      onChange={handleChange}
+                      onBlur={() => handleBlur("caesFemeaVacinadas")}
+                      className={`input ${erros.caesFemeaVacinadas && tocado.caesFemeaVacinadas ? "input-error" : ""}`}
+                      min="0"
+                      max={formData.caesFemea}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Máx: {formData.caesFemea}
+                    </p>
+                    {erros.caesFemeaVacinadas && tocado.caesFemeaVacinadas && (
+                      <p className="error-message">
+                        <AlertCircle className="w-4 h-4" />
+                        {erros.caesFemeaVacinadas}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Gatos Macho Vacinados */}
+                {formData.gatosMacho > 0 && (
+                  <div className="form-group">
+                    <label htmlFor="gatosMachoVacinados" className="label">
+                      🐈💉 Gatos Macho Vacinados
+                    </label>
+                    <input
+                      type="number"
+                      id="gatosMachoVacinados"
+                      name="gatosMachoVacinados"
+                      value={formData.gatosMachoVacinados}
+                      onChange={handleChange}
+                      onBlur={() => handleBlur("gatosMachoVacinados")}
+                      className={`input ${erros.gatosMachoVacinados && tocado.gatosMachoVacinados ? "input-error" : ""}`}
+                      min="0"
+                      max={formData.gatosMacho}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Máx: {formData.gatosMacho}
+                    </p>
+                    {erros.gatosMachoVacinados && tocado.gatosMachoVacinados && (
+                      <p className="error-message">
+                        <AlertCircle className="w-4 h-4" />
+                        {erros.gatosMachoVacinados}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Gatos Fêmea Vacinadas */}
+                {formData.gatosFemea > 0 && (
+                  <div className="form-group">
+                    <label htmlFor="gatosFemeaVacinadas" className="label">
+                      🐈💉 Gatos Fêmea Vacinadas
+                    </label>
+                    <input
+                      type="number"
+                      id="gatosFemeaVacinadas"
+                      name="gatosFemeaVacinadas"
+                      value={formData.gatosFemeaVacinadas}
+                      onChange={handleChange}
+                      onBlur={() => handleBlur("gatosFemeaVacinadas")}
+                      className={`input ${erros.gatosFemeaVacinadas && tocado.gatosFemeaVacinadas ? "input-error" : ""}`}
+                      min="0"
+                      max={formData.gatosFemea}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Máx: {formData.gatosFemea}
+                    </p>
+                    {erros.gatosFemeaVacinadas && tocado.gatosFemeaVacinadas && (
+                      <p className="error-message">
+                        <AlertCircle className="w-4 h-4" />
+                        {erros.gatosFemeaVacinadas}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Resumo de Vacinação */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-sm font-medium text-blue-700">
+                    Total de Animais Vacinados:
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {formData.caesMachoVacinados + formData.caesFemeaVacinadas + formData.gatosMachoVacinados + formData.gatosFemeaVacinadas} / {totalAnimais}
+                  </span>
+                </div>
+                <div className="text-xs text-blue-600 mt-1">
+                  Taxa de vacinação: {totalAnimais > 0 ? Math.round(((formData.caesMachoVacinados + formData.caesFemeaVacinadas + formData.gatosMachoVacinados + formData.gatosFemeaVacinadas) / totalAnimais) * 100) : 0}%
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Seção 3: Dados do Tutor */}
@@ -719,6 +886,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
                 value={formData.telefone}
                 onChange={handleChange}
                 onBlur={() => handleBlur("telefone")}
+                maskChar={null}
               >
                 {(inputProps) => (
                   <input

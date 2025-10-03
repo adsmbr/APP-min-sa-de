@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-import { logger } from "../utils/logger.js";
+import { createClient } from '@supabase/supabase-js';
+import { logger } from '../utils/logger.js';
 
 // Configuração do Supabase com variáveis de ambiente
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -11,20 +11,88 @@ if (!supabaseUrl || !supabaseAnonKey) {
   logger.error("Por favor, configure o arquivo .env com suas credenciais");
 }
 
-// Criar cliente Supabase
+// Criar cliente Supabase com configurações otimizadas
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     storage: window.localStorage,
+    // Configurações de timeout mais adequadas
+    flowType: 'pkce',
+    debug: import.meta.env.VITE_APP_ENV === 'development',
   },
   db: {
     schema: "public",
   },
   global: {
-    headers: { "x-my-custom-header": "sistema-nova-iguacu" },
+    headers: { 
+      "x-my-custom-header": "sistema-nova-iguacu",
+      "x-client-info": "webapp-v1.0"
+    },
+    // Configurações de fetch com timeouts mais adequados e retry
+    fetch: async (url, options = {}) => {
+      const maxRetries = 2;
+      let attempt = 0;
+      
+      while (attempt <= maxRetries) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            logger.warn(`⏰ Timeout na tentativa ${attempt + 1} para ${url}`);
+            controller.abort();
+          }, 25000); // 25 segundos de timeout
+          
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            headers: {
+              ...options.headers,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          clearTimeout(timeoutId);
+          
+          // Se a resposta for bem-sucedida, retornar
+          if (response.ok || response.status < 500) {
+            return response;
+          }
+          
+          // Para erros 5xx, tentar novamente
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          
+        } catch (error) {
+          attempt++;
+          
+          // Se for o último retry ou erro não recuperável, lançar erro
+          if (attempt > maxRetries || 
+              (error.name !== 'AbortError' && 
+               !error.message?.includes('fetch') &&
+               !error.message?.includes('HTTP 5'))) {
+            logger.error(`❌ Falha definitiva após ${attempt} tentativas:`, error.message);
+            throw error;
+          }
+          
+          // Aguardar antes do próximo retry (backoff)
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          logger.debug(`🔄 Tentativa ${attempt} falhou, aguardando ${delay}ms antes do retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
   },
+  // Configurações de realtime com timeouts adequados
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+    heartbeatIntervalMs: 30000,
+    reconnectAfterMs: (tries) => Math.min(tries * 1000, 30000),
+  }
 });
 
 // ============================================

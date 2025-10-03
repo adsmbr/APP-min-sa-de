@@ -33,10 +33,10 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
       profile: profile,
       role: profile?.role,
       isAdmin: isAdmin,
-      getRoleLabel: getRoleLabel(),
-      getRoleColor: getRoleColor()
+      getRoleLabel: getRoleLabel,
+      getRoleColor: getRoleColor
     });
-  }, [user, profile, isAdmin, getRoleLabel, getRoleColor]);
+  }, [user, profile, isAdmin, getRoleLabel, getRoleColor]); // Agora as funções são memoizadas
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -99,10 +99,10 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
                       {profile?.nome_completo || user.email}
                     </span>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full border inline-flex items-center gap-1 w-fit ${getRoleColor()}`}
+                      className={`text-xs px-2 py-0.5 rounded-full border inline-flex items-center gap-1 w-fit ${getRoleColor}`}
                     >
-                      {isAdmin && <Shield className="w-3 h-3" />}
-                      {getRoleLabel()}
+                      {profile?.role === 'admin' && <Shield className="w-3 h-3" />}
+                      {getRoleLabel}
                     </span>
                   </div>
                 </div>
@@ -164,10 +164,10 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
                         {profile?.nome_completo || user.email}
                       </span>
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full border inline-flex items-center gap-1 w-fit mt-1 ${getRoleColor()}`}
+                        className={`text-xs px-2 py-0.5 rounded-full border inline-flex items-center gap-1 w-fit mt-1 ${getRoleColor}`}
                       >
                         {isAdmin && <Shield className="w-3 h-3" />}
-                        {getRoleLabel()}
+                        {getRoleLabel}
                       </span>
                     </div>
                   </div>

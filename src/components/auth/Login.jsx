@@ -35,41 +35,52 @@ const Login = ({ onLoginSuccess, onToggleRegister }) => {
         password: senha,
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        setMensagem('Login realizado com sucesso!');
-
-        // Verificar se o perfil existe, se não, criar
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError && profileError.code === 'PGRST116') {
-          // Perfil não existe, criar um
-          await supabase.from('profiles').insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              nome_completo: data.user.email.split('@')[0],
-              role: 'pesquisador',
-            },
-          ]);
-        }
-
-        setTimeout(() => {
-          if (onLoginSuccess) onLoginSuccess(data.user);
-        }, 500);
+      if (error) {
+        logger.error('Erro de autenticação:', error);
+        throw error;
       }
+
+      // Verificar se realmente temos um usuário autenticado
+      if (!data.user || !data.session) {
+        throw new Error('Falha na autenticação - dados de usuário inválidos');
+      }
+
+      setMensagem('Login realizado com sucesso!');
+
+      // Verificar se o perfil existe, se não, criar
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError && profileError.code === 'PGRST116') {
+        // Perfil não existe, criar um
+        await supabase.from('profiles').insert([
+          {
+            id: data.user.id,
+            email: data.user.email,
+            nome_completo: data.user.email.split('@')[0],
+            role: 'pesquisador',
+          },
+        ]);
+      }
+
+      setTimeout(() => {
+        if (onLoginSuccess) onLoginSuccess(data.user);
+      }, 500);
     } catch (error) {
       logger.error('Erro no login:', error);
 
-      if (error.message.includes('Invalid login credentials')) {
+      // Melhor tratamento de erros de autenticação
+      if (error.message.includes('Invalid login credentials') || 
+          error.message.includes('invalid_credentials') ||
+          error.message.includes('Invalid email or password')) {
         setErro('Email ou senha incorretos');
       } else if (error.message.includes('Email not confirmed')) {
         setErro('Por favor, confirme seu email antes de fazer login');
+      } else if (error.message.includes('Too many requests')) {
+        setErro('Muitas tentativas de login. Tente novamente em alguns minutos.');
       } else {
         setErro('Erro ao fazer login: ' + error.message);
       }
