@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "./auth/AuthProvider";
 import usePermissions from "../hooks/usePermissions";
+import { logger } from "../utils/logger.js";
 
 const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -24,6 +25,18 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
   const { user, profile } = useAuth();
   const { getRoleLabel, getRoleColor, isAdmin, canAccessTab } =
     usePermissions();
+
+  // Log para debug do role
+  useEffect(() => {
+    logger.debug("🎭 [LAYOUT] Estado do usuário:", {
+      user: !!user,
+      profile: profile,
+      role: profile?.role,
+      isAdmin: isAdmin,
+      getRoleLabel: getRoleLabel(),
+      getRoleColor: getRoleColor()
+    });
+  }, [user, profile, isAdmin, getRoleLabel, getRoleColor]);
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);

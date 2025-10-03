@@ -68,16 +68,22 @@ export const getCurrentUser = async () => {
  */
 export const getUserProfile = async (userId) => {
   try {
+    logger.debug("🔍 [SUPABASE] Buscando perfil na tabela profiles para userId:", userId);
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      logger.error("❌ [SUPABASE] Erro na query do perfil:", error);
+      throw error;
+    }
+    
+    logger.debug("✅ [SUPABASE] Perfil encontrado:", data);
     return data;
   } catch (error) {
-    logger.error("Erro ao obter perfil:", error);
+    logger.error("❌ [SUPABASE] Erro ao obter perfil:", error);
     return null;
   }
 };
@@ -87,11 +93,18 @@ export const getUserProfile = async (userId) => {
  */
 export const signOut = async () => {
   try {
+    logger.debug("🚪 [SUPABASE] Iniciando signOut no Supabase...");
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    
+    if (error) {
+      logger.error("❌ [SUPABASE] Erro no signOut:", error);
+      throw error;
+    }
+    
+    logger.debug("✅ [SUPABASE] SignOut realizado com sucesso");
     return { success: true };
   } catch (error) {
-    logger.error("Erro ao fazer logout:", error);
+    logger.error("❌ [SUPABASE] Erro ao fazer logout:", error);
     return { success: false, error: error.message };
   }
 };

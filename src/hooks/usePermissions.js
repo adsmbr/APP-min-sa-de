@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useAuth } from '../components/auth/AuthProvider';
+import { logger } from '../utils/logger.js';
 
 /**
  * Hook customizado para gerenciar permissões baseadas em roles
@@ -13,8 +14,13 @@ const usePermissions = () => {
 
   // Determinar o role atual do usuário
   const userRole = useMemo(() => {
-    if (!profile) return null;
-    return profile.role || 'funcionario';
+    if (!profile) {
+      logger.debug("🔍 [PERMISSIONS] Profile não encontrado");
+      return null;
+    }
+    const role = profile.role || 'funcionario';
+    logger.debug("🔍 [PERMISSIONS] Role determinado:", role, "Profile:", profile);
+    return role;
   }, [profile]);
 
   // Verificar se o usuário é admin

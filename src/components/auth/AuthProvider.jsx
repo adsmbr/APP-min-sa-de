@@ -24,11 +24,14 @@ export const AuthProvider = ({ children }) => {
   // Buscar perfil do usuário
   const fetchProfile = async (userId) => {
     try {
+      logger.debug("👤 [PROFILE] Buscando perfil para userId:", userId);
       const profileData = await getUserProfile(userId);
+      logger.debug("👤 [PROFILE] Dados do perfil recebidos:", profileData);
+      logger.debug("👤 [PROFILE] Role do usuário:", profileData?.role);
       setProfile(profileData);
       return profileData;
     } catch (error) {
-      logger.error("Erro ao buscar perfil:", error);
+      logger.error("❌ [PROFILE] Erro ao buscar perfil:", error);
       return null;
     }
   };
@@ -214,17 +217,27 @@ export const AuthProvider = ({ children }) => {
   // Função de logout
   const logout = async () => {
     try {
-      logger.debug("🚪 Fazendo logout...");
-      const { error } = await signOut();
-
-      if (error) throw error;
-
-      logger.debug("✅ Logout bem-sucedido");
-      setUser(null);
-      setProfile(null);
-      return { success: true };
+      logger.debug("🚪 [LOGOUT] Iniciando processo de logout...");
+      logger.debug("🚪 [LOGOUT] Estado atual - User:", !!user, "Profile:", !!profile);
+      
+      logger.debug("🚪 [LOGOUT] Chamando signOut do Supabase...");
+      const result = await signOut();
+      
+      logger.debug("🚪 [LOGOUT] Resultado do signOut:", result);
+      
+      if (result.success) {
+        logger.debug("🚪 [LOGOUT] SignOut bem-sucedido, limpando estado local...");
+        setUser(null);
+        setProfile(null);
+        logger.debug("🚪 [LOGOUT] Estado limpo - User:", null, "Profile:", null);
+        logger.debug("✅ [LOGOUT] Logout realizado com sucesso");
+        return { success: true };
+      } else {
+        logger.error("❌ [LOGOUT] Erro no signOut:", result.error);
+        throw new Error(result.error);
+      }
     } catch (error) {
-      logger.error("Erro no logout:", error);
+      logger.error("❌ [LOGOUT] Erro no logout:", error);
       return { success: false, error: error.message };
     }
   };
