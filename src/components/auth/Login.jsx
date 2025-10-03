@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, UserPlus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { logger } from '../../utils/logger.js';
 
 const Login = ({ onLoginSuccess, onToggleRegister }) => {
   const [email, setEmail] = useState('');
@@ -63,7 +64,7 @@ const Login = ({ onLoginSuccess, onToggleRegister }) => {
         }, 500);
       }
     } catch (error) {
-      console.error('Erro no login:', error);
+      logger.error('Erro no login:', error);
 
       if (error.message.includes('Invalid login credentials')) {
         setErro('Email ou senha incorretos');

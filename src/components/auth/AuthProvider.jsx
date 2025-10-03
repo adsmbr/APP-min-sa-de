@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { supabase, getUserProfile, signOut } from "../../lib/supabase";
+import { logger } from '../../utils/logger.js';
 
 // Criar contexto de autenticação
 const AuthContext = createContext({});
@@ -27,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       setProfile(profileData);
       return profileData;
     } catch (error) {
-      console.error("Erro ao buscar perfil:", error);
+      logger.error("Erro ao buscar perfil:", error);
       return null;
     }
   };
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        console.log("🔐 Inicializando autenticação...");
+        logger.debug("🔐 Inicializando autenticação...");
 
         // Timeout de 5 segundos para evitar loading infinito
         const timeoutPromise = new Promise((_, reject) => {
@@ -49,131 +50,130 @@ export const AuthProvider = ({ children }) => {
           );
         });
 
-        // Obter sessão atual com timeout
         const sessionPromise = supabase.auth.getSession();
+        const { data: sessionData, error: sessionError } = await Promise.race([
+          sessionPromise,
+          timeoutPromise,
+        ]);
 
-        const {
-          data: { session: currentSession },
-          error,
-        } = await Promise.race([sessionPromise, timeoutPromise]);
-
-        clearTimeout(timeoutId);
-
-        if (error) throw error;
-
-        if (mounted) {
-          if (currentSession) {
-            console.log("✅ Sessão encontrada");
-            setSession(currentSession);
-            setUser(currentSession.user);
-
-            // Buscar perfil (não bloqueia o loading se falhar)
-            fetchProfile(currentSession.user.id).catch((err) => {
-              console.warn("⚠️ Erro ao buscar perfil (não crítico):", err);
-            });
-          } else {
-            console.log("ℹ️ Nenhuma sessão ativa - mostrando tela de login");
-          }
-
-          console.log("✅ Loading concluído");
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("❌ Erro ao inicializar autenticação:", error);
-        if (mounted) {
-          // SEMPRE parar o loading, mesmo com erro
-          console.log("🛑 Parando loading devido ao erro");
-          setLoading(false);
-          setUser(null);
-          setProfile(null);
-          setSession(null);
-
-          // Se for timeout, mostrar mensagem específica
-          if (error.message && error.message.includes("Timeout")) {
-            console.error(
-              "⏱️ TIMEOUT: Supabase não respondeu em 5 segundos. Mostrando tela de login.",
-            );
-          }
-        }
-      } finally {
-        // Garantir que loading sempre para
-        if (mounted && timeoutId) {
+        if (timeoutId) {
           clearTimeout(timeoutId);
         }
-        console.log("🏁 Inicialização finalizada");
+
+        if (sessionError) {
+          throw sessionError;
+        }
+
+        if (!mounted) return;
+
+        if (sessionData?.session?.user) {
+          logger.debug("✅ Sessão encontrada");
+          setUser(sessionData.session.user);
+
+          try {
+            await fetchProfile(sessionData.session.user.id);
+          } catch (err) {
+            logger.warn("⚠️ Erro ao buscar perfil (não crítico):", err);
+          }
+        } else {
+          logger.debug("ℹ️ Nenhuma sessão ativa - mostrando tela de login");
+        }
+
+        logger.debug("✅ Loading concluído");
+        if (mounted) setLoading(false);
+      } catch (error) {
+        logger.error("❌ Erro ao inicializar autenticação:", error);
+        if (mounted) {
+          logger.debug("🛑 Parando loading devido ao erro");
+          setLoading(false);
+        }
       }
     };
 
-    initializeAuth();
+    // Timeout adicional como fallback
+    const fallbackTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        logger.error(
+          "❌ Timeout geral - forçando fim do loading após 10 segundos",
+        );
+        setLoading(false);
+      }
+    }, 10000);
+
+    initializeAuth().finally(() => {
+      logger.debug("🏁 Inicialização finalizada");
+      clearTimeout(fallbackTimeout);
+    });
 
     // Listener para mudanças de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log("🔄 Auth state changed:", event);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      logger.debug("🔄 Auth state changed:", event);
 
-      if (mounted) {
-        setSession(currentSession);
+      if (!mounted) return;
 
-        if (currentSession) {
-          console.log("✅ Sessão ativa detectada");
-          setUser(currentSession.user);
-          fetchProfile(currentSession.user.id).catch((err) => {
-            console.warn("⚠️ Erro ao buscar perfil após mudança de auth:", err);
-          });
-        } else {
-          console.log("🚪 Sessão encerrada");
-          setUser(null);
-          setProfile(null);
+      if (session?.user) {
+        logger.debug("✅ Sessão ativa detectada");
+        setUser(session.user);
+        try {
+          await fetchProfile(session.user.id);
+        } catch (err) {
+          logger.warn("⚠️ Erro ao buscar perfil após mudança de auth:", err);
         }
-
-        // Sempre garantir que loading para
-        setLoading(false);
+      } else {
+        logger.debug("🚪 Sessão encerrada");
+        setUser(null);
+        setProfile(null);
       }
     });
 
-    // Cleanup
     return () => {
       mounted = false;
       if (timeoutId) clearTimeout(timeoutId);
-      subscription?.unsubscribe();
+      clearTimeout(fallbackTimeout);
+      subscription.unsubscribe();
     };
   }, []);
 
   // Função de login
   const login = async (email, password) => {
     try {
-      console.log("🔐 Tentando fazer login...");
+      logger.debug("🔐 Tentando fazer login...");
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email,
         password,
       });
 
       if (error) throw error;
 
       if (data.user) {
-        console.log("✅ Login bem-sucedido");
+        logger.debug("✅ Login bem-sucedido");
         setUser(data.user);
-        setSession(data.session);
         await fetchProfile(data.user.id);
         return { success: true, user: data.user };
       }
+
+      return { success: false, error: "Dados de login inválidos" };
     } catch (error) {
-      console.error("Erro no login:", error);
+      logger.error("Erro no login:", error);
       return { success: false, error: error.message };
     }
   };
 
   // Função de registro
-  const register = async (email, password, nomeCompleto) => {
+  const register = async (email, password, userData) => {
     try {
-      console.log("📝 Tentando registrar novo usuário...");
+      logger.debug("📝 Tentando registrar novo usuário...");
+
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
+        email,
         password,
         options: {
           data: {
-            nome_completo: nomeCompleto.trim(),
+            nome: userData.nome,
+            role: userData.role || "funcionario",
           },
         },
       });
@@ -181,27 +181,32 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       if (data.user) {
-        console.log("✅ Usuário registrado, criando perfil...");
-        // Criar perfil
-        const { error: profileError } = await supabase.from("profiles").insert([
-          {
-            id: data.user.id,
-            email: data.user.email,
-            nome_completo: nomeCompleto.trim(),
-            role: "funcionario",
-          },
-        ]);
+        logger.debug("✅ Usuário registrado, criando perfil...");
+
+        // Criar perfil na tabela profiles
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: data.user.id,
+              nome: userData.nome,
+              email: email,
+              role: userData.role || "funcionario",
+            },
+          ]);
 
         if (profileError) {
-          console.error("❌ Erro ao criar perfil:", profileError);
-        } else {
-          console.log("✅ Perfil criado com sucesso");
+          logger.error("❌ Erro ao criar perfil:", profileError);
+          throw profileError;
         }
+        logger.debug("✅ Perfil criado com sucesso");
 
         return { success: true, user: data.user };
       }
+
+      return { success: false, error: "Erro ao criar usuário" };
     } catch (error) {
-      console.error("Erro no registro:", error);
+      logger.error("Erro no registro:", error);
       return { success: false, error: error.message };
     }
   };
@@ -209,15 +214,17 @@ export const AuthProvider = ({ children }) => {
   // Função de logout
   const logout = async () => {
     try {
-      console.log("🚪 Fazendo logout...");
-      await signOut();
+      logger.debug("🚪 Fazendo logout...");
+      const { error } = await signOut();
+
+      if (error) throw error;
+
+      logger.debug("✅ Logout bem-sucedido");
       setUser(null);
       setProfile(null);
-      setSession(null);
-      console.log("✅ Logout bem-sucedido");
       return { success: true };
     } catch (error) {
-      console.error("Erro no logout:", error);
+      logger.error("Erro no logout:", error);
       return { success: false, error: error.message };
     }
   };

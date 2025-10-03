@@ -7,6 +7,7 @@ import {
   excluirRegistro as deleteRegistro,
   getEstatisticas as fetchEstatisticas,
 } from "../lib/supabase";
+import { logger } from "../utils/logger";
 
 const useSupabaseStore = create((set, get) => ({
   // Estado inicial
@@ -40,7 +41,7 @@ const useSupabaseStore = create((set, get) => ({
 
   // Carregar registros do Supabase
   carregarRegistros: async () => {
-    console.log("📊 useSupabaseStore: Carregando registros...");
+    logger.debug("📊 useSupabaseStore: Carregando registros...");
     set({ loading: true, error: null });
     try {
       const { data, error } = await fetchRegistros();
@@ -68,14 +69,14 @@ const useSupabaseStore = create((set, get) => ({
         criadoPor: reg.criado_por,
       }));
 
-      console.log(
+      logger.info(
         `✅ useSupabaseStore: ${registrosTransformados.length} registros carregados`,
       );
       set({ registros: registrosTransformados, loading: false });
       get().calcularEstatisticas();
       return registrosTransformados;
     } catch (error) {
-      console.error("❌ useSupabaseStore: Erro ao carregar registros:", error);
+      logger.error("❌ useSupabaseStore: Erro ao carregar registros:", error);
       set({ error: error.message, loading: false });
       return [];
     }
@@ -83,7 +84,7 @@ const useSupabaseStore = create((set, get) => ({
 
   // Adicionar registro
   adicionarRegistro: async (registro) => {
-    console.log("➕ useSupabaseStore: Adicionando registro...", registro);
+    logger.debug("➕ useSupabaseStore: Adicionando registro...", registro);
     set({ loading: true, error: null });
     try {
       // Transformar dados para formato do Supabase
@@ -105,7 +106,7 @@ const useSupabaseStore = create((set, get) => ({
       const { data, error } = await criarRegistro(registroSupabase);
       if (error) throw new Error(error);
 
-      console.log(
+      logger.info(
         "✅ useSupabaseStore: Registro adicionado, recarregando lista...",
       );
       // Recarregar registros
@@ -114,7 +115,7 @@ const useSupabaseStore = create((set, get) => ({
 
       return data?.[0];
     } catch (error) {
-      console.error("❌ useSupabaseStore: Erro ao adicionar registro:", error);
+      logger.error("❌ useSupabaseStore: Erro ao adicionar registro:", error);
       set({ error: error.message, loading: false });
       throw error;
     }
@@ -147,7 +148,7 @@ const useSupabaseStore = create((set, get) => ({
       await get().carregarRegistros();
       set({ registroEditando: null, loading: false });
     } catch (error) {
-      console.error("Erro ao atualizar registro:", error);
+      logger.error("Erro ao atualizar registro:", error);
       set({ error: error.message, loading: false });
       throw error;
     }
@@ -164,7 +165,7 @@ const useSupabaseStore = create((set, get) => ({
       await get().carregarRegistros();
       set({ loading: false });
     } catch (error) {
-      console.error("Erro ao excluir registro:", error);
+      logger.error("Erro ao excluir registro:", error);
       set({ error: error.message, loading: false });
       throw error;
     }
@@ -403,7 +404,7 @@ const useSupabaseStore = create((set, get) => ({
           table: "registros",
         },
         () => {
-          console.log("Mudança detectada, recarregando registros...");
+          logger.debug("Mudança detectada, recarregando registros...");
           get().carregarRegistros();
         },
       )

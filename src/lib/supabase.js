@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { logger } from "../utils/logger.js";
 
 // Configuração do Supabase com variáveis de ambiente
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -6,8 +7,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Verificar se as credenciais estão configuradas
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error("⚠️ ERRO: Credenciais do Supabase não configuradas!");
-  console.error("Por favor, configure o arquivo .env com suas credenciais");
+  logger.error("⚠️ ERRO: Credenciais do Supabase não configuradas!");
+  logger.error("Por favor, configure o arquivo .env com suas credenciais");
 }
 
 // Criar cliente Supabase
@@ -40,7 +41,7 @@ export const isAuthenticated = async () => {
     } = await supabase.auth.getSession();
     return !!session;
   } catch (error) {
-    console.error("Erro ao verificar autenticação:", error);
+    logger.error("Erro ao verificar autenticação:", error);
     return false;
   }
 };
@@ -57,7 +58,7 @@ export const getCurrentUser = async () => {
     if (error) throw error;
     return user;
   } catch (error) {
-    console.error("Erro ao obter usuário:", error);
+    logger.error("Erro ao obter usuário:", error);
     return null;
   }
 };
@@ -76,7 +77,7 @@ export const getUserProfile = async (userId) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error("Erro ao obter perfil:", error);
+    logger.error("Erro ao obter perfil:", error);
     return null;
   }
 };
@@ -90,7 +91,7 @@ export const signOut = async () => {
     if (error) throw error;
     return { success: true };
   } catch (error) {
-    console.error("Erro ao fazer logout:", error);
+    logger.error("Erro ao fazer logout:", error);
     return { success: false, error: error.message };
   }
 };
@@ -104,7 +105,7 @@ export const signOut = async () => {
  */
 export const getRegistros = async (filtros = {}) => {
   try {
-    console.log("🔍 Buscando registros...", filtros);
+    logger.debug("🔍 Buscando registros...", filtros);
 
     let query = supabase
       .from("registros")
@@ -142,13 +143,13 @@ export const getRegistros = async (filtros = {}) => {
  */
 export const criarRegistro = async (registro) => {
   try {
-    console.log("📝 Tentando criar registro...", registro);
+    logger.debug("📝 Tentando criar registro...", registro);
 
     const user = await getCurrentUser();
-    console.log("👤 Usuário atual:", user ? user.id : "NULL");
+    logger.debug("👤 Usuário atual:", user ? user.id : "NULL");
 
     if (!user) {
-      console.error("❌ Usuário não autenticado!");
+      logger.error("❌ Usuário não autenticado!");
       throw new Error("Usuário não autenticado");
     }
 
@@ -157,7 +158,7 @@ export const criarRegistro = async (registro) => {
       criado_por: user.id,
     };
 
-    console.log("💾 Salvando registro:", registroComUsuario);
+    logger.debug("💾 Salvando registro:", registroComUsuario);
 
     const { data, error } = await supabase
       .from("registros")
@@ -165,14 +166,14 @@ export const criarRegistro = async (registro) => {
       .select();
 
     if (error) {
-      console.error("❌ Erro do Supabase:", error);
+      logger.error("❌ Erro do Supabase:", error);
       throw error;
     }
 
-    console.log("✅ Registro criado com sucesso!", data);
+    logger.debug("✅ Registro criado com sucesso!", data);
     return { data, error: null };
   } catch (error) {
-    console.error("❌ Erro ao criar registro:", error);
+    logger.error("❌ Erro ao criar registro:", error);
     return { data: null, error: error.message };
   }
 };
@@ -191,7 +192,7 @@ export const atualizarRegistro = async (id, dadosAtualizados) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error("Erro ao atualizar registro:", error);
+    logger.error("Erro ao atualizar registro:", error);
     return { data: null, error: error.message };
   }
 };
@@ -206,7 +207,7 @@ export const excluirRegistro = async (id) => {
     if (error) throw error;
     return { success: true, error: null };
   } catch (error) {
-    console.error("Erro ao excluir registro:", error);
+    logger.error("Erro ao excluir registro:", error);
     return { success: false, error: error.message };
   }
 };
@@ -229,7 +230,7 @@ export const subscribeToRegistros = (callback) => {
         table: "registros",
       },
       (payload) => {
-        console.log("Mudança detectada:", payload);
+        logger.debug("Mudança detectada:", payload);
         if (callback) callback(payload);
       },
     )
@@ -297,13 +298,13 @@ export const getEstatisticas = async () => {
 
     return { data: stats, error: null };
   } catch (error) {
-    console.error("Erro ao calcular estatísticas:", error);
+    logger.error("Erro ao calcular estatísticas:", error);
     return { data: null, error: error.message };
   }
 };
 
 // Log de conexão bem-sucedida
-console.log("✅ Supabase configurado com sucesso!");
-console.log("📡 URL:", supabaseUrl);
+logger.info("✅ Supabase configurado com sucesso!");
+logger.info("📡 URL:", supabaseUrl);
 
 export default supabase;
