@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     let authSubscription;
     let retryCount = 0;
     let loadingTimeoutId;
-    const maxRetries = 2; // Reduzido de 3 para 2
+    const maxRetries = 5;
 
     // Garantir que o loading não fique infinito
     loadingTimeoutId = setTimeout(() => {
@@ -163,8 +163,21 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Inicializar autenticação
     initializeAuth();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data: sessionData, error }) => {
+          if (error) return;
+          if (!mounted) return;
+          if (sessionData?.session?.user) {
+            setUser(sessionData.session.user);
+            setSession(sessionData.session);
+            fetchProfile(sessionData.session.user.id).catch(() => {});
+          }
+        });
+      }
+    };
 
     // Listeners de rede para manter estado offline/online e reprocessar sessão
     const handleOnline = () => {
@@ -176,8 +189,13 @@ export const AuthProvider = ({ children }) => {
       logger.warn("📵 Conexão perdida (offline)");
       setIsOffline(true);
     };
+    const handleFocus = () => {
+      initializeAuth();
+    };
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Listener para mudanças de autenticação (configurado apenas uma vez)
     const {
@@ -229,6 +247,8 @@ export const AuthProvider = ({ children }) => {
       mounted = false;
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (loadingTimeoutId) {
         clearTimeout(loadingTimeoutId);
       }
@@ -330,21 +350,34 @@ export const AuthProvider = ({ children }) => {
       logger.debug("🚪 [LOGOUT] Chamando signOut do Supabase...");
       const result = await signOut();
 
+      const clearSupabaseAuthStorage = () => {
+        try {
+          const keys = Object.keys(window.localStorage);
+          keys.forEach((k) => {
+            if (k.startsWith('sb-')) {
+              window.localStorage.removeItem(k);
+            }
+          });
+        } catch (_) {}
+      };
+
       logger.debug("🚪 [LOGOUT] Resultado do signOut:", result);
 
       if (result.success) {
+        clearSupabaseAuthStorage();
         logger.debug("🚪 [LOGOUT] SignOut bem-sucedido, limpeza local concluída");
         setLoading(false); // Garantir que loading seja desativado
         logger.debug("✅ [LOGOUT] Logout realizado com sucesso");
         return { success: true };
       } else {
         logger.error("❌ [LOGOUT] Erro no signOut:", result.error);
-        setLoading(false); // Restaurar loading em caso de erro
+        clearSupabaseAuthStorage();
+        setLoading(false);
         throw new Error(result.error);
       }
     } catch (error) {
       logger.error("❌ [LOGOUT] Erro no logout:", error);
-      setLoading(false); // Restaurar loading em caso de erro
+      setLoading(false);
       return { success: false, error: error.message };
     }
   };
