@@ -290,7 +290,7 @@ export const validarFormularioRegistro = (dados) => {
  */
 export const sanitizarString = (str) => {
   if (!str) return '';
-  return str.trim().replace(/[<>]/g, '');
+  return str.replace(/[<>]/g, '');
 };
 
 /**
