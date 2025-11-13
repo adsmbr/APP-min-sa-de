@@ -30,13 +30,10 @@ const Layout = ({ children, activeTab, onTabChange, onLogout }) => {
   useEffect(() => {
     logger.debug("🎭 [LAYOUT] Estado do usuário:", {
       user: !!user,
-      profile: profile,
       role: profile?.role,
       isAdmin: isAdmin,
-      getRoleLabel: getRoleLabel,
-      getRoleColor: getRoleColor
     });
-  }, [user, profile, isAdmin, getRoleLabel, getRoleColor]); // Agora as funções são memoizadas
+  }, [user, profile, isAdmin]);
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);

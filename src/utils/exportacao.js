@@ -3,13 +3,14 @@
 import Papa from 'papaparse';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { logger } from './logger.js';
 
 /**
  * Exporta registros para CSV
  */
 export const exportarParaCSV = (registros, nomeArquivo = 'registros-nova-iguacu') => {
   if (!registros || registros.length === 0) {
-    alert('Não há registros para exportar');
+    logger.warn('Não há registros para exportar');
     return false;
   }
 
@@ -67,7 +68,7 @@ export const exportarParaExcel = (registros, nomeArquivo = 'registros-nova-iguac
  */
 export const exportarParaJSON = (registros, nomeArquivo = 'registros-nova-iguacu') => {
   if (!registros || registros.length === 0) {
-    alert('Não há registros para exportar');
+    logger.warn('Não há registros para exportar');
     return false;
   }
 
@@ -185,7 +186,7 @@ export const exportarPorLocalidade = (estatisticas) => {
  */
 export const exportarParaSPSS = (registros) => {
   if (!registros || registros.length === 0) {
-    alert('Não há registros para exportar');
+    logger.warn('Não há registros para exportar');
     return false;
   }
 
@@ -242,7 +243,7 @@ export const exportarParaGeoJSON = (registros) => {
   );
 
   if (registrosComCoordenadas.length === 0) {
-    alert('Nenhum registro possui coordenadas geográficas');
+    logger.warn('Nenhum registro possui coordenadas geográficas');
     return false;
   }
 

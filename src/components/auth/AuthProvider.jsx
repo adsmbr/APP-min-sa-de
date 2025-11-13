@@ -24,13 +24,7 @@ export const AuthProvider = ({ children }) => {
       logger.debug("👤 [PROFILE] Role do usuário:", profileData?.role);
       
       // Debug adicional para verificar o role
-      if (profileData) {
-        logger.debug("🔍 [DEBUG] Perfil completo:", JSON.stringify(profileData, null, 2));
-        logger.debug("🔍 [DEBUG] Email do usuário:", profileData.email);
-        logger.debug("🔍 [DEBUG] Role detectado:", profileData.role);
-        logger.debug("🔍 [DEBUG] É admin?", profileData.role === 'admin');
-        logger.debug("🔍 [DEBUG] É funcionário?", profileData.role === 'funcionario');
-      } else {
+      if (!profileData) {
         logger.warn("⚠️ [DEBUG] Perfil não encontrado ou nulo!");
       }
 
