@@ -44,6 +44,17 @@ export const AuthProvider = ({ children }) => {
     let loadingTimeoutId;
     const maxRetries = 5;
 
+    const clearSupabaseAuthStorage = () => {
+      try {
+        const keys = Object.keys(window.localStorage);
+        keys.forEach((k) => {
+          if (k.startsWith('sb-')) {
+            window.localStorage.removeItem(k);
+          }
+        });
+      } catch (_) {}
+    };
+
     // Garantir que o loading não fique infinito
     loadingTimeoutId = setTimeout(() => {
       if (mounted && loading) {
@@ -92,11 +103,12 @@ export const AuthProvider = ({ children }) => {
             return;
           }
 
-          // Se esgotaram as tentativas, continuar sem sessão
-          logger.warn("⚠️ Continuando sem sessão ativa (modo offline)");
+          clearSupabaseAuthStorage();
           if (mounted) {
             setLoading(false);
-            setIsOffline(true);
+            setIsOffline(false);
+            setUser(null);
+            setSession(null);
           }
           return;
         }
@@ -118,6 +130,7 @@ export const AuthProvider = ({ children }) => {
             logger.error("❌ Erro ao buscar perfil:", err);
           }
         } else {
+          clearSupabaseAuthStorage();
           logger.debug("ℹ️ Nenhuma sessão ativa encontrada");
         }
 
