@@ -31,7 +31,11 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     getLocalidades,
   } = useSupabaseStore();
 
-  const localidadesExistentes = getLocalidades();
+  const registrosStore = useSupabaseStore((s) => s.registros);
+  const localidadesExistentes = React.useMemo(() => {
+    const set = new Set(registrosStore.map((reg) => reg.localidade));
+    return Array.from(set).sort();
+  }, [registrosStore]);
 
   // Estado inicial do formulário
   const estadoInicial = {
@@ -60,6 +64,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
   const [tocado, setTocado] = useState({});
   const [salvando, setSalvando] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [mensagemErro, setMensagemErro] = useState("");
   const [avisosDuplicata, setAvisosDuplicata] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false); // Novo estado para carregamento do GPS
   const [locationError, setLocationError] = useState(null); // Novo estado para erros de geolocalização
@@ -154,9 +159,9 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
       );
       setSugestoesLocalidade(sugestoes);
     } else {
-      setSugestoesLocalidade([]);
+      if (sugestoesLocalidade.length !== 0) setSugestoesLocalidade([]);
     }
-  }, [formData.localidade, localidadesExistentes]);
+  }, [formData.localidade]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -315,7 +320,7 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
         if (onSuccess) onSuccess();
       }, 1500);
     } catch (error) {
-      alert("Erro ao salvar registro: " + error.message);
+      setMensagemErro("Erro ao salvar registro: " + error.message);
     } finally {
       setSalvando(false);
     }
@@ -356,6 +361,12 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-4 animate-fadeIn flex items-center gap-2">
           <Check className="w-5 h-5" />
           <span className="font-medium">{mensagemSucesso}</span>
+        </div>
+      )}
+      {mensagemErro && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4 animate-fadeIn flex items-center gap-2">
+          <AlertCircle className="w-5 h-5" />
+          <span className="font-medium">{mensagemErro}</span>
         </div>
       )}
 

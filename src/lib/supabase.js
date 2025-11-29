@@ -1,13 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '../utils/logger.js';
-
-// Valores hardcoded para debug - TEMPORÁRIO
-const supabaseUrl = "https://wypnotezypjdjjznkcyd.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5cG5vdGV6eXBqZGpqem5rY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MDA3NDYsImV4cCI6MjA3NDk3Njc0Nn0.uvpxF2zF2tsnCXY_PTWWbDG-ogjC0Gpk5L6Ni9LfDHI";
-
-console.log("🔧 CRIANDO CLIENTE SUPABASE COM VALORES HARDCODED:");
-console.log("URL:", supabaseUrl);
-console.log("KEY:", supabaseAnonKey ? "✅ Presente" : "❌ Ausente");
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Criar cliente Supabase
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -275,7 +269,6 @@ export const getEstatisticas = async () => {
   }
 };
 
-logger.info("✅ Supabase configurado com sucesso!");
-logger.info("📡 URL:", supabaseUrl);
+logger.info("✅ Supabase configurado");
 
 export default supabase;

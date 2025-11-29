@@ -410,7 +410,7 @@ const useSupabaseStore = create((set, get) => ({
   // Subscrever a mudanças em tempo real
   subscribeToChanges: () => {
     const channel = supabase
-      .channel("registros-changes")
+      .channel("registros")
       .on(
         "postgres_changes",
         {

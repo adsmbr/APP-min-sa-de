@@ -19,25 +19,14 @@ const usePermissions = () => {
       return null;
     }
     const role = profile.role || 'funcionario';
-    logger.debug("🔍 [PERMISSIONS] Role determinado:", role, "Profile:", profile);
-    
-    // Debug adicional
-    logger.debug("🔍 [PERMISSIONS] Profile completo:", JSON.stringify(profile, null, 2));
-    logger.debug("🔍 [PERMISSIONS] Email do profile:", profile.email);
-    logger.debug("🔍 [PERMISSIONS] Role original:", profile.role);
-    logger.debug("🔍 [PERMISSIONS] Role final:", role);
-    
+    logger.debug("🔍 [PERMISSIONS] Role determinado:", role);
     return role;
   }, [profile]);
 
   // Verificar se o usuário é admin
   const isAdmin = useMemo(() => {
     const adminStatus = userRole === 'admin';
-    logger.debug("🔍 [PERMISSIONS] Verificação isAdmin:", {
-      userRole,
-      isAdmin: adminStatus,
-      profile: profile ? { email: profile.email, role: profile.role } : null
-    });
+    logger.debug("🔍 [PERMISSIONS] Verificação isAdmin:", { userRole, isAdmin: adminStatus });
     return adminStatus;
   }, [userRole]);
 
