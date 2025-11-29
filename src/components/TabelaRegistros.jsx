@@ -134,12 +134,15 @@ const TabelaRegistros = ({ onEdit }) => {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <label htmlFor="buscaRegistros" className="sr-only">Buscar registros</label>
               <input
                 type="text"
                 placeholder="Buscar por localidade, endereço, tutor, URG ou telefone..."
                 value={filtros.busca}
                 onChange={handleBuscaChange}
                 className="input pl-10 w-full"
+                id="buscaRegistros"
+                name="busca"
               />
             </div>
             <button
@@ -162,7 +165,7 @@ const TabelaRegistros = ({ onEdit }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Filtro por Localidade */}
                 <div>
-                  <label className="label">
+                  <label className="label" htmlFor="filtroLocalidade">
                     <MapPin className="w-4 h-4 inline" /> Localidade
                   </label>
                   <select
@@ -171,6 +174,8 @@ const TabelaRegistros = ({ onEdit }) => {
                       handleFiltroChange("localidade", e.target.value)
                     }
                     className="input"
+                    id="filtroLocalidade"
+                    name="localidade"
                   >
                     <option value="">Todas</option>
                     {localidades.map((loc) => (
@@ -183,7 +188,7 @@ const TabelaRegistros = ({ onEdit }) => {
 
                 {/* Filtro por Data Início */}
                 <div>
-                  <label className="label">
+                  <label className="label" htmlFor="filtroDataInicio">
                     <Calendar className="w-4 h-4 inline" /> Data Início
                   </label>
                   <input
@@ -193,12 +198,14 @@ const TabelaRegistros = ({ onEdit }) => {
                       handleFiltroChange("dataInicio", e.target.value)
                     }
                     className="input"
+                    id="filtroDataInicio"
+                    name="dataInicio"
                   />
                 </div>
 
                 {/* Filtro por Data Fim */}
                 <div>
-                  <label className="label">
+                  <label className="label" htmlFor="filtroDataFim">
                     <Calendar className="w-4 h-4 inline" /> Data Fim
                   </label>
                   <input
@@ -208,18 +215,22 @@ const TabelaRegistros = ({ onEdit }) => {
                       handleFiltroChange("dataFim", e.target.value)
                     }
                     className="input"
+                    id="filtroDataFim"
+                    name="dataFim"
                   />
                 </div>
 
                 {/* Filtro por Tipo de Animal */}
                 <div>
-                  <label className="label">Tipo de Animal</label>
+                  <label className="label" htmlFor="filtroTipoAnimal">Tipo de Animal</label>
                   <select
                     value={filtros.tipoAnimal}
                     onChange={(e) =>
                       handleFiltroChange("tipoAnimal", e.target.value)
                     }
                     className="input"
+                    id="filtroTipoAnimal"
+                    name="tipoAnimal"
                   >
                     <option value="todos">Todos</option>
                     <option value="caes">🐕 Apenas Cães</option>
@@ -253,11 +264,13 @@ const TabelaRegistros = ({ onEdit }) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Por página:</label>
+          <label className="text-sm text-gray-600" htmlFor="registrosPorPagina">Por página:</label>
           <select
             value={registrosPorPagina}
             onChange={(e) => setRegistrosPorPagina(parseInt(e.target.value))}
             className="input py-1 px-2 text-sm"
+            id="registrosPorPagina"
+            name="registrosPorPagina"
           >
             <option value={5}>5</option>
             <option value={10}>10</option>

@@ -31,7 +31,11 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
     getLocalidades,
   } = useSupabaseStore();
 
-  const localidadesExistentes = getLocalidades();
+  const registrosStore = useSupabaseStore((s) => s.registros);
+  const localidadesExistentes = React.useMemo(() => {
+    const set = new Set(registrosStore.map((reg) => reg.localidade));
+    return Array.from(set).sort();
+  }, [registrosStore]);
 
   // Estado inicial do formulário
   const estadoInicial = {
@@ -155,9 +159,9 @@ const FormularioRegistro = ({ onSuccess, onCancel }) => {
       );
       setSugestoesLocalidade(sugestoes);
     } else {
-      setSugestoesLocalidade([]);
+      if (sugestoesLocalidade.length !== 0) setSugestoesLocalidade([]);
     }
-  }, [formData.localidade, localidadesExistentes]);
+  }, [formData.localidade]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
